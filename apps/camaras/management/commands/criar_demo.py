@@ -1,12 +1,11 @@
 """Cria uma câmara fictícia com dados de exemplo para demonstração e desenvolvimento."""
 
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from django.core.management.base import BaseCommand
 
 from apps.camaras.models import Camara, Dominio
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from apps.legislativo.models import Legislatura, Materia, Norma, Sessao, Tramitacao, Vereador
 from apps.noticias.models import Noticia
@@ -17,12 +16,21 @@ class Command(BaseCommand):
     help = "Cria a Câmara Municipal de Demonstração respondendo no domínio informado."
 
     def add_arguments(self, parser):
-        parser.add_argument("--host", default="localhost")
+        parser.add_argument(
+            "--host", action="append", dest="hosts",
+            help="Domínio da câmara de demonstração. Pode repetir. Padrão: localhost.",
+        )
 
-    def handle(self, *args, host, **opcoes):
-        if Dominio.objects.filter(host=host).exists():
-            self.stdout.write(f"Já existe uma câmara em {host}.")
+    def handle(self, *args, hosts, **opcoes):
+        hosts = [h.strip().lower() for h in (hosts or ["localhost"]) if h and h.strip()]
+        existente = Dominio.objects.filter(host__in=hosts).select_related("camara").first()
+        if existente:
+            # Garante que todos os domínios pedidos apontem para a câmara já criada.
+            for h in hosts:
+                Dominio.objects.get_or_create(host=h, defaults={"camara": existente.camara})
+            self.stdout.write(f"A câmara de demonstração já existe ({', '.join(hosts)}).")
             return
+        host = hosts[0]
         camara = Camara.objects.create(
             nome="Câmara Municipal de Demonstração", municipio="Demonstração", uf="CE",
             cnpj="00.000.000/0001-00", endereco="Rua Principal, 100, Centro",
@@ -30,7 +38,8 @@ class Command(BaseCommand):
             horario_atendimento="segunda a sexta, das 8h às 14h",
             encarregado_lgpd="Encarregado de Dados, encarregado@exemplo.leg.br",
         )
-        Dominio.objects.create(camara=camara, host=host, principal=True)
+        for i, h in enumerate(hosts):
+            Dominio.objects.create(camara=camara, host=h, principal=(i == 0))
         vereadores = []
         leg = Legislatura.objects.create(camara=camara, numero=20, inicio=date(2025, 1, 1), fim=date(2028, 12, 31))
         for nome, partido, cargo in [
@@ -68,4 +77,4 @@ class Command(BaseCommand):
         Documento.objects.create(camara=camara, categoria=CategoriaTransparencia.objects.get(slug="despesas"),
                                  titulo="Consulta de despesas no sistema contábil", data=date(2026, 1, 1),
                                  link_externo="https://exemplo.com/despesas")
-        self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em http://{host}:8000/"))
+        self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em: {', '.join(hosts)}"))

@@ -15,6 +15,15 @@ SaaS de portal institucional e de transparência para câmaras municipais. Um c�
 - **Dados abertos**: as listagens de legislação e transparência aceitam `?formato=csv` ou `?formato=json`.
 - **e-SIC**: protocolo sequencial por câmara, código secreto de consulta, prazo de 20 dias com uma prorrogação de 10, indicador de vencimento e aviso de privacidade.
 
+## Ver no navegador sem instalar nada (GitHub Codespaces)
+
+1. No GitHub, abra o repositório e clique em **Code → Codespaces → Create codespace on main**.
+2. Espere a preparação, que leva alguns minutos na primeira vez. Ela instala as dependências, cria o banco e carrega a câmara de demonstração.
+3. O portal abre sozinho numa aba. Se não abrir, use a aba **PORTS**, porta 8000, ícone do globo.
+4. Para o painel, acrescente `/admin/` ao endereço. Usuário `admin`, senha `demo123` (vale só para a demonstração).
+
+O Codespace para sozinho quando fica ocioso e consome a cota gratuita mensal do GitHub. Exclua-o em github.com/codespaces quando não precisar mais.
+
 ## Rodar localmente
 
 Com Docker:

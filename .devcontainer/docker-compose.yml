@@ -1,0 +1,26 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/python:3.13
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+      DJANGO_DEBUG: "true"
+      DJANGO_USE_X_FORWARDED_HOST: "true"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "https://*.app.github.dev,https://localhost:8000"  # o proxy do Codespaces reescreve o Origin para localhost
+    depends_on: [db]
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+volumes:
+  dados-postgres:

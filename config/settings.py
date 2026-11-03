@@ -20,6 +20,13 @@ DEBUG = env_bool("DJANGO_DEBUG", True)
 # Em produção, mantenha "*" apenas atrás de um proxy/CDN que filtre o Host.
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
+# Atrás de um proxy (Codespaces, CDN), o domínio original chega em X-Forwarded-Host.
+# Só ative quando o proxy for confiável e sobrescrever esse cabeçalho.
+USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", False)
+
+# Origens HTTPS aceitas em formulários (ex.: "https://*.app.github.dev").
+CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

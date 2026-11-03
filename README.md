@@ -20,7 +20,9 @@ SaaS de portal institucional e de transparência para câmaras municipais. Um c�
 1. No GitHub, abra o repositório e clique em **Code → Codespaces → Create codespace on main**.
 2. Espere a preparação, que leva alguns minutos na primeira vez. Ela instala as dependências, cria o banco e carrega a câmara de demonstração.
 3. O portal abre sozinho numa aba. Se não abrir, use a aba **PORTS**, porta 8000, ícone do globo.
-4. Para o painel, acrescente `/admin/` ao endereço. Usuário `admin`, senha `demo123` (vale só para a demonstração).
+4. Para o painel, acrescente `/admin/` ao endereço. Usuário `admin`, senha `demo123` (vale só para a demonstração; troque se tornar a porta pública).
+
+Sempre que o Codespace é aberto ou reconectado, `iniciar.sh` puxa a `main`, aplica as migrações e reinicia o servidor. Para atualizar na hora, rode `bash .devcontainer/iniciar.sh` no terminal.
 
 O Codespace para sozinho quando fica ocioso e consome a cota gratuita mensal do GitHub. Exclua-o em github.com/codespaces quando não precisar mais.
 

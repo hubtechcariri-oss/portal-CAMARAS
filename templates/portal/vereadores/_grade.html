@@ -1,10 +1,11 @@
 {% if vereadores %}
-<ul class="grade">
+<ul class="vereadores-grade">
   {% for v in vereadores %}
-  <li class="cartao">
-    {% if v.foto %}<img src="{{ v.foto.url }}" alt="Foto de {{ v.nome_parlamentar }}">{% endif %}
+  <li class="vereador-cartao">
+    {% if v.foto %}<img src="{{ v.foto.url }}" alt="Foto de {{ v.nome_parlamentar }}" loading="lazy">{% else %}<span class="vereador-cartao__iniciais" aria-hidden="true">{{ v.nome_parlamentar|slice:":1" }}</span>{% endif %}
     <h3><a href="{% url 'vereador' v.pk %}">{{ v.nome_parlamentar }}</a></h3>
-    <p class="meta">{{ v.partido }}{% if v.cargo_mesa %} · {{ v.cargo_mesa }}{% endif %}</p>
+    {% if v.partido %}<p class="meta">{{ v.partido }}</p>{% endif %}
+    {% if v.cargo_mesa %}<span class="selo">{{ v.cargo_mesa }}</span>{% endif %}
   </li>
   {% endfor %}
 </ul>

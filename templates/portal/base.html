@@ -7,56 +7,128 @@
   <link rel="stylesheet" href="{% static 'css/portal.css' %}">
   <style>:root { --cor-primaria: {{ camara.cor_primaria|default:"#0b4f8a" }}; }</style>
 </head>
-<body>
+<body class="{% block classe_body %}{% endblock %}">
   <ul class="atalhos">
     <li><a href="#conteudo" accesskey="1">Ir para o conteúdo [1]</a></li>
     <li><a href="#menu" accesskey="2">Ir para o menu [2]</a></li>
     <li><a href="#rodape" accesskey="4">Ir para o rodapé [4]</a></li>
   </ul>
 
-  <div class="barra-acessibilidade" role="region" aria-label="Recursos de acessibilidade">
-    <div class="container">
-      <a href="{% url 'transparencia' %}">Transparência</a>
-      <a href="{% url 'esic:novo' %}">e-SIC</a>
-      <a href="{% url 'ouvidoria:nova' %}">Ouvidoria</a>
-      <a href="{% url 'acessibilidade' %}">Acessibilidade</a>
-      <button type="button" data-acao="contraste" aria-pressed="false">Alto contraste</button>
-      <button type="button" data-acao="aumentar" aria-label="Aumentar fonte">A+</button>
-      <button type="button" data-acao="diminuir" aria-label="Diminuir fonte">A−</button>
+  <div class="barra-topo" role="region" aria-label="Acesso rápido e acessibilidade">
+    <div class="container barra-topo__conteudo">
+      <nav class="barra-topo__links" aria-label="Acesso rápido">
+        <a href="{% url 'transparencia' %}">Transparência</a>
+        <a href="{% url 'esic:novo' %}">e-SIC</a>
+        <a href="{% url 'ouvidoria:nova' %}">Ouvidoria</a>
+        <a href="{% url 'acessibilidade' %}">Acessibilidade</a>
+      </nav>
+      <div class="barra-topo__acoes">
+        <button type="button" data-acao="contraste" aria-pressed="false">Alto contraste</button>
+        <button type="button" data-acao="aumentar" aria-label="Aumentar fonte">A+</button>
+        <button type="button" data-acao="diminuir" aria-label="Diminuir fonte">A−</button>
+        {% if camara.facebook %}<a class="social" href="{{ camara.facebook }}" rel="noopener" aria-label="Facebook">{% include "portal/icones/facebook.svg" %}</a>{% endif %}
+        {% if camara.instagram %}<a class="social" href="{{ camara.instagram }}" rel="noopener" aria-label="Instagram">{% include "portal/icones/instagram.svg" %}</a>{% endif %}
+        {% if camara.youtube %}<a class="social" href="{{ camara.youtube }}" rel="noopener" aria-label="YouTube">{% include "portal/icones/youtube.svg" %}</a>{% endif %}
+      </div>
     </div>
   </div>
 
   <header class="cabecalho">
-    <div class="container">
-      <a class="marca" href="{% url 'inicio' %}">{{ camara.nome }}<span>{{ camara.municipio }}/{{ camara.uf }}</span></a>
+    <div class="container cabecalho__conteudo">
+      <a class="marca" href="{% url 'inicio' %}">
+        {% if camara.brasao %}<img class="marca__brasao" src="{{ camara.brasao.url }}" alt="">{% endif %}
+        <span class="marca__texto">
+          <span class="marca__nome">{{ camara.nome }}</span>
+          <span class="marca__local">Poder Legislativo · {{ camara.municipio }}/{{ camara.uf }}</span>
+        </span>
+      </a>
+      <button type="button" class="menu-mobile" aria-expanded="false" aria-controls="menu-lista">
+        <span class="menu-mobile__barras" aria-hidden="true"></span>Menu
+      </button>
     </div>
-    <nav id="menu" aria-label="Menu principal">
-      <ul class="container">
+    <nav id="menu" class="menu" aria-label="Menu principal">
+      <ul id="menu-lista" class="container menu__lista">
         <li><a href="{% url 'inicio' %}">Início</a></li>
-        <li><a href="{% url 'vereadores' %}">Vereadores</a></li>
-        <li><a href="{% url 'sessoes' %}">Sessões</a></li>
-        <li><a href="{% url 'materias' %}">Matérias</a></li>
-        <li><a href="{% url 'normas' %}">Legislação</a></li>
+        <li class="menu__grupo">
+          <button type="button" aria-expanded="false" aria-controls="sub-institucional">Institucional</button>
+          <ul id="sub-institucional" class="submenu">
+            {% for p in paginas_menu.institucional %}<li><a href="{% url 'pagina' p.slug %}">{{ p.titulo }}</a></li>{% endfor %}
+            <li><a href="{% url 'mesa_diretora' %}">Mesa Diretora</a></li>
+            <li><a href="{% url 'normas' %}?tipo=lom">Lei Orgânica</a></li>
+            <li><a href="{% url 'normas' %}?tipo=ri">Regimento Interno</a></li>
+          </ul>
+        </li>
+        <li class="menu__grupo">
+          <button type="button" aria-expanded="false" aria-controls="sub-legislativo">Legislativo</button>
+          <ul id="sub-legislativo" class="submenu">
+            <li><a href="{% url 'vereadores' %}">Vereadores</a></li>
+            <li><a href="{% url 'sessoes' %}">Sessões plenárias</a></li>
+            <li><a href="{% url 'materias' %}">Matérias legislativas</a></li>
+            <li><a href="{% url 'normas' %}">Legislação municipal</a></li>
+            {% for p in paginas_menu.legislativo %}<li><a href="{% url 'pagina' p.slug %}">{{ p.titulo }}</a></li>{% endfor %}
+          </ul>
+        </li>
+        <li class="menu__grupo">
+          <button type="button" aria-expanded="false" aria-controls="sub-transparencia">Transparência</button>
+          <ul id="sub-transparencia" class="submenu">
+            <li><a href="{% url 'transparencia' %}">Portal da Transparência</a></li>
+            <li><a href="{% url 'transparencia_categoria' 'receitas' %}">Receitas</a></li>
+            <li><a href="{% url 'transparencia_categoria' 'despesas' %}">Despesas</a></li>
+            <li><a href="{% url 'transparencia_categoria' 'licitacoes' %}">Licitações</a></li>
+            <li><a href="{% url 'transparencia_categoria' 'contratos' %}">Contratos</a></li>
+            <li><a href="{% url 'transparencia_categoria' 'diarias' %}">Diárias</a></li>
+            {% for p in paginas_menu.transparencia %}<li><a href="{% url 'pagina' p.slug %}">{{ p.titulo }}</a></li>{% endfor %}
+          </ul>
+        </li>
+        <li class="menu__grupo">
+          <button type="button" aria-expanded="false" aria-controls="sub-cidadao">Atendimento</button>
+          <ul id="sub-cidadao" class="submenu">
+            <li><a href="{% url 'esic:novo' %}">Pedir informação (e-SIC)</a></li>
+            <li><a href="{% url 'ouvidoria:nova' %}">Ouvidoria</a></li>
+            <li><a href="{% url 'esic:consulta' %}">Consultar pedido</a></li>
+            <li><a href="{% url 'ouvidoria:consulta' %}">Consultar manifestação</a></li>
+          </ul>
+        </li>
         <li><a href="{% url 'noticias' %}">Notícias</a></li>
-        <li><a href="{% url 'transparencia' %}">Transparência</a></li>
-        <li><a href="{% url 'esic:novo' %}">Acesso à Informação</a></li>
-        <li><a href="{% url 'ouvidoria:nova' %}">Ouvidoria</a></li>
       </ul>
     </nav>
   </header>
 
-  <main id="conteudo" class="container" tabindex="-1">
+  {% block topo %}{% endblock %}
+
+  <main id="conteudo" class="container conteudo" tabindex="-1">
     {% block conteudo %}{% endblock %}
   </main>
 
   <footer id="rodape" class="rodape">
-    <div class="container">
-      <p><strong>{{ camara.nome }}</strong></p>
-      {% if camara.cnpj %}<p>CNPJ {{ camara.cnpj }}</p>{% endif %}
-      {% if camara.endereco %}<p>{{ camara.endereco }}</p>{% endif %}
-      {% if camara.horario_atendimento %}<p>Atendimento: {{ camara.horario_atendimento }}</p>{% endif %}
-      <p>{% if camara.telefone %}{{ camara.telefone }}{% endif %}{% if camara.telefone and camara.email %} · {% endif %}{% if camara.email %}<a href="mailto:{{ camara.email }}">{{ camara.email }}</a>{% endif %}</p>
-      <p><a href="{% url 'privacidade' %}">Privacidade e proteção de dados</a> · <a href="{% url 'acessibilidade' %}">Acessibilidade</a></p>
+    <div class="container rodape__colunas">
+      <section>
+        <h2 class="rodape__titulo">{{ camara.nome }}</h2>
+        {% if camara.cnpj %}<p>CNPJ {{ camara.cnpj }}</p>{% endif %}
+        {% if camara.endereco %}<p>{{ camara.endereco }}</p>{% endif %}
+        {% if camara.horario_atendimento %}<p>Atendimento: {{ camara.horario_atendimento }}</p>{% endif %}
+        {% if camara.telefone %}<p>{{ camara.telefone }}</p>{% endif %}
+        {% if camara.email %}<p><a href="mailto:{{ camara.email }}">{{ camara.email }}</a></p>{% endif %}
+      </section>
+      <section>
+        <h2 class="rodape__titulo">Legislativo</h2>
+        <ul>
+          <li><a href="{% url 'vereadores' %}">Vereadores</a></li>
+          <li><a href="{% url 'sessoes' %}">Sessões</a></li>
+          <li><a href="{% url 'materias' %}">Matérias</a></li>
+          <li><a href="{% url 'normas' %}">Legislação</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="rodape__titulo">Cidadão</h2>
+        <ul>
+          <li><a href="{% url 'transparencia' %}">Portal da Transparência</a></li>
+          <li><a href="{% url 'esic:novo' %}">e-SIC</a></li>
+          <li><a href="{% url 'ouvidoria:nova' %}">Ouvidoria</a></li>
+          <li><a href="{% url 'privacidade' %}">Privacidade e proteção de dados</a></li>
+          <li><a href="{% url 'acessibilidade' %}">Acessibilidade</a></li>
+        </ul>
+      </section>
     </div>
   </footer>
 
@@ -67,5 +139,6 @@
   </div>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
   <script src="{% static 'js/acessibilidade.js' %}" defer></script>
+  <script src="{% static 'js/portal.js' %}" defer></script>
 </body>
 </html>

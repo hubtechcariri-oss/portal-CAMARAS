@@ -1,36 +1,112 @@
 {% extends "portal/base.html" %}
-{% block conteudo %}
-<h1>{{ camara.nome }}</h1>
+{% block classe_body %}inicio{% endblock %}
 
-<section aria-labelledby="t-acesso">
-  <h2 id="t-acesso">Acesso rápido</h2>
-  <ul class="grade">
-    <li class="cartao"><a href="{% url 'transparencia' %}">Portal da Transparência</a></li>
-    <li class="cartao"><a href="{% url 'normas' %}">Legislação municipal</a></li>
-    <li class="cartao"><a href="{% url 'vereadores' %}">Vereadores</a></li>
-    <li class="cartao"><a href="{% url 'esic:novo' %}">Pedir informação (e-SIC)</a></li>
-    <li class="cartao"><a href="{% url 'ouvidoria:nova' %}">Ouvidoria: reclamações, denúncias, sugestões e elogios</a></li>
-  </ul>
-</section>
-
-<section aria-labelledby="t-noticias">
-  <h2 id="t-noticias">Notícias</h2>
-  {% if noticias %}
-  <ul class="grade">
-    {% for n in noticias %}
-    <li class="cartao">
-      {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.texto_alternativo }}">{% endif %}
-      <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"d/m/Y" }}</time></p>
-      <h3><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h3>
+{% block topo %}
+{% if banners %}
+<section class="carrossel" data-carrossel aria-roledescription="carrossel" aria-label="Destaques">
+  <ul class="carrossel__slides">
+    {% for b in banners %}
+    <li class="carrossel__slide" aria-roledescription="slide" aria-label="{{ forloop.counter }} de {{ banners|length }}"{% if not forloop.first %} hidden{% endif %}>
+      <img src="{{ b.imagem.url }}" alt="{{ b.texto_alternativo }}"{% if not forloop.first %} loading="lazy"{% endif %}>
+      <div class="carrossel__texto">
+        <div class="container">
+          <h2>{{ b.titulo }}</h2>
+          {% if b.subtitulo %}<p>{{ b.subtitulo }}</p>{% endif %}
+          {% if b.link %}<a class="botao" href="{{ b.link }}">{{ b.rotulo_link|default:"Saiba mais" }}<span class="visualmente-oculto">: {{ b.titulo }}</span></a>{% endif %}
+        </div>
+      </div>
     </li>
     {% endfor %}
   </ul>
-  <p><a href="{% url 'noticias' %}">Todas as notícias</a></p>
-  {% else %}<p>Nenhuma notícia publicada.</p>{% endif %}
+  {% if banners|length > 1 %}
+  <div class="carrossel__controles">
+    <div class="container">
+      <ul class="carrossel__pontos">
+        {% for b in banners %}<li><button type="button" class="carrossel__ponto" aria-current="{% if forloop.first %}true{% else %}false{% endif %}"><span class="visualmente-oculto">Mostrar destaque {{ forloop.counter }}: {{ b.titulo }}</span></button></li>{% endfor %}
+      </ul>
+      <button type="button" data-anterior aria-label="Destaque anterior">‹</button>
+      <button type="button" data-proximo aria-label="Próximo destaque">›</button>
+      <button type="button" data-pausa aria-pressed="false">❚❚ Pausar</button>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block conteudo %}
+<h1 class="visualmente-oculto">{{ camara.nome }}</h1>
+
+<section class="faixa faixa--suave" aria-labelledby="t-acesso">
+  <div class="container">
+    <div class="secao__cabecalho"><h2 id="t-acesso">Serviços ao cidadão</h2></div>
+    <ul class="atalhos-rapidos">
+      <li><a class="atalho" href="{% url 'transparencia' %}">{% include "portal/icones/transparencia.svg" %}Portal da Transparência</a></li>
+      <li><a class="atalho" href="{% url 'esic:novo' %}">{% include "portal/icones/info.svg" %}Pedir informação (e-SIC)</a></li>
+      <li><a class="atalho" href="{% url 'ouvidoria:nova' %}">{% include "portal/icones/ouvidoria.svg" %}Ouvidoria</a></li>
+      <li><a class="atalho" href="{% url 'normas' %}">{% include "portal/icones/lei.svg" %}Legislação municipal</a></li>
+      <li><a class="atalho" href="{% url 'materias' %}">{% include "portal/icones/materia.svg" %}Matérias legislativas</a></li>
+      <li><a class="atalho" href="{% url 'sessoes' %}">{% include "portal/icones/sessao.svg" %}Sessões plenárias</a></li>
+      <li><a class="atalho" href="{% url 'transparencia_categoria' 'licitacoes' %}">{% include "portal/icones/licitacao.svg" %}Licitações e contratos</a></li>
+      <li><a class="atalho" href="{% url 'transparencia_categoria' 'diarias' %}">{% include "portal/icones/diaria.svg" %}Diárias</a></li>
+    </ul>
+  </div>
 </section>
 
-<section aria-labelledby="t-vereadores">
-  <h2 id="t-vereadores">Vereadores</h2>
-  {% include "portal/vereadores/_grade.html" %}
+<section class="faixa" aria-labelledby="t-noticias">
+  <div class="container">
+    <div class="secao__cabecalho"><h2 id="t-noticias">Notícias</h2>{% if noticias %}<a href="{% url 'noticias' %}">Todas as notícias</a>{% endif %}</div>
+    {% if noticias %}
+    <ul class="noticias-grade">
+      {% for n in noticias %}
+      <li>
+        <article class="noticia-cartao">
+          {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.texto_alternativo }}" loading="lazy">{% else %}<div class="noticia-cartao__sem-imagem"></div>{% endif %}
+          <div class="noticia-cartao__corpo">
+            <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"d/m/Y" }}</time></p>
+            <h3><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h3>
+            {% if n.resumo %}<p>{{ n.resumo }}</p>{% endif %}
+          </div>
+        </article>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p>Nenhuma notícia publicada.</p>{% endif %}
+  </div>
+</section>
+
+<section class="faixa faixa--suave" aria-labelledby="t-vereadores">
+  <div class="container">
+    <div class="secao__cabecalho"><h2 id="t-vereadores">Vereadores</h2>{% if vereadores %}<a href="{% url 'mesa_diretora' %}">Mesa Diretora</a>{% endif %}</div>
+    {% include "portal/vereadores/_grade.html" %}
+  </div>
+</section>
+
+<section class="faixa" aria-label="Atividade legislativa">
+  <div class="container duas-colunas">
+    <div>
+      <div class="secao__cabecalho"><h2 id="t-sessoes">Sessões</h2><a href="{% url 'sessoes' %}">Ver todas</a></div>
+      {% if sessoes %}
+      <ul class="lista-simples" aria-labelledby="t-sessoes">
+        {% for s in sessoes %}
+        <li><a href="{% url 'sessao' s.pk %}">{{ s }}</a>
+          <p class="meta">{{ s.data_hora|date:"d/m/Y \à\s H\hi" }}{% if s.video_url %} · vídeo disponível{% endif %}</p></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p>Nenhuma sessão publicada.</p>{% endif %}
+    </div>
+    <div>
+      <div class="secao__cabecalho"><h2 id="t-materias">Matérias recentes</h2><a href="{% url 'materias' %}">Ver todas</a></div>
+      {% if materias %}
+      <ul class="lista-simples" aria-labelledby="t-materias">
+        {% for m in materias %}
+        <li><a href="{% url 'materia' m.pk %}">{{ m }}</a> <span class="etiqueta">{{ m.get_situacao_display }}</span>
+          <p>{{ m.ementa|truncatewords:22 }}</p>
+          {% if m.autoria %}<p class="meta">Autoria: {{ m.autoria }}</p>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}<p>Nenhuma matéria publicada.</p>{% endif %}
+    </div>
+  </div>
 </section>
 {% endblock %}

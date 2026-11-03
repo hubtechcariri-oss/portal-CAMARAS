@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.camaras.admin_mixins import AdminDaCamara, RestringeRelacoesMixin
+from apps.camaras.admin_mixins import AdminDaCamara, ColunaPublicacaoMixin, RestringeRelacoesMixin
 from apps.camaras.midia import previa
 
 from .models import Legislatura, Materia, Norma, Sessao, Tramitacao, Vereador
@@ -22,7 +22,7 @@ class VereadorAdmin(AdminDaCamara):
 
     @admin.display(description="foto")
     def miniatura(self, obj):
-        return previa(obj.foto, 40, redonda=True)
+        return previa(obj.foto, 45, redonda=True)
 
     @admin.display(description="foto atual")
     def foto_atual(self, obj):
@@ -30,16 +30,16 @@ class VereadorAdmin(AdminDaCamara):
 
 
 @admin.register(Norma)
-class NormaAdmin(AdminDaCamara):
-    list_display = ["__str__", "data", "ementa", "publicada"]
+class NormaAdmin(ColunaPublicacaoMixin, AdminDaCamara):
+    list_display = ["__str__", "data", "ementa", "situacao_publicacao"]
     list_filter = ["tipo", "ano", "publicada"]
     search_fields = ["numero", "ementa", "texto"]
     date_hierarchy = "data"
 
 
 @admin.register(Sessao)
-class SessaoAdmin(AdminDaCamara):
-    list_display = ["__str__", "tipo", "data_hora", "publicada"]
+class SessaoAdmin(ColunaPublicacaoMixin, AdminDaCamara):
+    list_display = ["__str__", "tipo", "data_hora", "situacao_publicacao"]
     list_filter = ["tipo", "publicada"]
     date_hierarchy = "data_hora"
     filter_horizontal = ["presentes"]
@@ -51,8 +51,8 @@ class TramitacaoInline(RestringeRelacoesMixin, admin.TabularInline):
 
 
 @admin.register(Materia)
-class MateriaAdmin(AdminDaCamara):
-    list_display = ["__str__", "data_apresentacao", "ementa", "situacao", "publicada"]
+class MateriaAdmin(ColunaPublicacaoMixin, AdminDaCamara):
+    list_display = ["__str__", "data_apresentacao", "ementa", "situacao", "situacao_publicacao"]
     list_filter = ["tipo", "ano", "situacao", "publicada"]
     search_fields = ["ementa", "texto", "autor_externo", "autores__nome_parlamentar"]
     filter_horizontal = ["autores"]

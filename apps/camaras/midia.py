@@ -59,15 +59,51 @@ VALIDA_IMAGEM = [FileExtensionValidator(FORMATOS_IMAGEM), TamanhoMaximo(5)]
 VALIDA_DOCUMENTO = [FileExtensionValidator(FORMATOS_DOCUMENTO), TamanhoMaximo(30)]
 
 
+LARGURA_MINIATURA = 160   # px do arquivo de miniatura (nítida em telas 2x quando exibida a 80 px)
+PESO_MAXIMO_MINIATURA = 20 * 1024  # bytes
+
+
+def caminho_miniatura(nome, largura=LARGURA_MINIATURA):
+    pasta, arquivo = os.path.split(nome)
+    return f"{pasta}/mini/{os.path.splitext(arquivo)[0]}-{largura}.webp"
+
+
+def miniatura(arquivo, largura=LARGURA_MINIATURA):
+    """URL de uma miniatura leve (WebP, até 20 KB) gerada uma vez e guardada ao lado do original.
+
+    Usada nas listas do painel, para não carregar a imagem inteira (1200 px) em cada linha.
+    Se algo falhar (arquivo ausente, formato estranho), cai para a imagem original.
+    """
+    if not arquivo:
+        return ""
+    storage, destino = arquivo.storage, caminho_miniatura(arquivo.name, largura)
+    try:
+        if not storage.exists(destino):
+            with storage.open(arquivo.name, "rb") as origem:
+                img = ImageOps.exif_transpose(Image.open(origem))
+                img.thumbnail((largura, largura * 2), Image.LANCZOS)
+                img = img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB")
+            for qualidade in (75, 60, 45, 30):
+                buf = io.BytesIO()
+                img.save(buf, "WEBP", quality=qualidade, method=6)
+                if buf.tell() <= PESO_MAXIMO_MINIATURA:
+                    break
+            storage.save(destino, ContentFile(buf.getvalue()))
+        return storage.url(destino)
+    except (OSError, ValueError):
+        return arquivo.url
+
+
 def previa(arquivo, altura=48, redonda=False):
-    """HTML de miniatura para o painel."""
+    """HTML de miniatura para o painel. Até 96 px de altura usa a miniatura leve."""
     if not arquivo:
         return "—"
-    raio = "50%" if redonda else "4px"
+    raio = "50%" if redonda else "6px"
+    fonte = miniatura(arquivo) if altura <= 96 else arquivo.url
     return format_html(
-        '<a href="{0}" target="_blank" rel="noopener"><img src="{0}" alt="" '
-        'style="height:{1}px;max-width:{2}px;object-fit:cover;border-radius:{3};background:#eee"></a>',
-        arquivo.url, altura, altura * 4, raio,
+        '<a href="{0}" target="_blank" rel="noopener" class="previa"><img src="{1}" alt="" loading="lazy" '
+        'style="height:{2}px;max-width:{3}px;object-fit:cover;border-radius:{4}"></a>',
+        arquivo.url, fonte, altura, altura * 4, raio,
     )
 
 

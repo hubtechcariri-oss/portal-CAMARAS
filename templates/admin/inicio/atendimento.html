@@ -1,0 +1,25 @@
+{# Dashboard 1: cumprimento dos prazos da LAI (e-SIC) e da Ouvidoria nos últimos 12 meses. #}
+<section class="cartao painel-secao" aria-labelledby="t-atendimento">
+  <h2 id="t-atendimento" class="cartao__titulo">Atendimento ao cidadão <span class="cartao__periodo">últimos 12 meses</span></h2>
+  <div class="painel-secao__grade">
+    {% for f in filas %}
+    <article class="metricas">
+      <header class="metricas__topo">
+        <h3><a href="{{ f.url }}">{{ f.rotulo }}</a></h3>
+        <span class="selo selo--{{ f.estado }}">{{ f.rotulo_estado }}</span>
+      </header>
+      <dl class="metricas__numeros">
+        <div class="metricas__destaque">
+          <dt>Respondidos no prazo</dt>
+          <dd>{% if f.percentual_no_prazo is None %}—{% else %}{{ f.percentual_no_prazo }}%{% endif %}
+            <span>{{ f.no_prazo }} de {{ f.concluidos }} respondido{{ f.concluidos|pluralize }}</span></dd>
+        </div>
+        <div><dt>Recebidos</dt><dd>{{ f.recebidos }}</dd></div>
+        <div><dt>Tempo médio de resposta</dt><dd>{% if f.tempo_medio is None %}—{% else %}{{ f.tempo_medio }} dia{{ f.tempo_medio|pluralize }}{% endif %}</dd></div>
+        <div><dt>Em aberto com prazo vencido</dt><dd{% if f.vencidos %} class="metricas__alerta"{% endif %}>{{ f.vencidos }}</dd></div>
+      </dl>
+      {% include "admin/inicio/grafico_barras.html" with serie=f.serie titulo="Recebidos por mês" %}
+    </article>
+    {% endfor %}
+  </div>
+</section>

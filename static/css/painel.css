@@ -357,6 +357,46 @@ html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { 
 @media (max-width: 900px) { .inicio__colunas { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------------------------------------------------------------------------
+   Dashboard do Início: atendimento, transparência e produção legislativa.
+   Gráficos só com HTML e CSS (sem biblioteca), com tabela para leitores de tela.
+   --------------------------------------------------------------------------- */
+.painel-secao { margin-bottom: var(--esp-4); }
+.cartao__periodo { white-space: nowrap; font-size: var(--fs-apoio); font-weight: 600; color: var(--texto-apoio); margin-left: var(--esp-2); }
+.painel-secao__grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--esp-4); }
+.metricas { border: 1px solid var(--cartao-borda); border-radius: var(--raio-campo); padding: var(--esp-4); min-width: 0; }
+.metricas__topo { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2); flex-wrap: wrap; margin-bottom: var(--esp-3); }
+#content .metricas__topo h3 { font-size: var(--fs-corpo); font-weight: 700; margin: 0; color: var(--texto-titulo); }
+.metricas__numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--esp-3); margin: 0 0 var(--esp-4); }
+.metricas__numeros > div { min-width: 0; }
+.metricas__numeros dt { font-size: var(--fs-apoio); color: var(--texto-apoio); font-weight: 600; line-height: 1.3; }
+.metricas__numeros dd { margin: var(--esp-1) 0 0; font-size: 22px; font-weight: 700; color: var(--texto-titulo); font-variant-numeric: tabular-nums; }
+.metricas__numeros dd span { display: block; font-size: var(--fs-apoio); font-weight: 400; color: var(--texto-apoio); }
+.metricas__destaque { grid-column: 1 / -1; }
+.metricas__destaque dd { font-size: var(--fs-indicador); line-height: 1.1; }
+.metricas__numeros dd.metricas__alerta { color: var(--estado-critico); }
+
+.grafico { margin: 0; }
+.grafico__legenda { font-size: var(--fs-apoio); font-weight: 600; color: var(--texto-apoio); margin-bottom: var(--esp-2); }
+.grafico__barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; list-style: none; margin: 0; padding: 0;
+  border-bottom: 1px solid var(--cartao-borda); }
+.grafico__mes { position: relative; display: flex; flex-direction: column; align-items: center; list-style: none; margin: 0; padding: 0; }
+.grafico__coluna { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 96px; padding-top: 18px; box-sizing: content-box; }
+.grafico__barra { display: block; width: min(70%, 18px); min-height: 2px; background: var(--link-fg); border-radius: 4px 4px 0 0; opacity: .75; }
+.grafico__mes--atual .grafico__barra, .grafico__mes:hover .grafico__barra { opacity: 1; }
+.grafico__valor { position: absolute; top: 0; font-size: 12px; font-weight: 700; color: var(--texto-titulo); font-variant-numeric: tabular-nums; }
+.grafico__rotulo { position: absolute; bottom: -20px; font-size: 11px; color: var(--texto-apoio); }
+.grafico__barras { margin-bottom: 22px; }
+.grafico__dica { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); z-index: 2; white-space: nowrap;
+  padding: 4px 8px; border-radius: 6px; background: var(--texto-titulo); color: var(--painel-cartao); font-size: 12px; font-weight: 600;
+  pointer-events: none; opacity: 0; transition: opacity .1s; }
+.grafico__mes:hover .grafico__dica { opacity: 1; }
+.grafico__mes:hover .grafico__valor { opacity: 0; }
+@media (max-width: 560px) {
+  .metricas__numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grafico__mes:nth-child(odd) .grafico__rotulo { visibility: hidden; }
+}
+
+/* ---------------------------------------------------------------------------
    Menu lateral fixo (tarefa 8), agrupado por tarefa, e menu do usuário.
    --------------------------------------------------------------------------- */
 #toggle-nav-sidebar { display: none !important; }

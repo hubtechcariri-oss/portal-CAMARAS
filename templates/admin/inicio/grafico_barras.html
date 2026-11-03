@@ -1,0 +1,20 @@
+{# Gráfico de barras leve (só HTML e CSS). Uma série: o título do cartão a nomeia. #}
+{# Leitores de tela usam a tabela; quem enxerga passa o mouse (ou o foco) na barra para ver o número. #}
+<figure class="grafico">
+  <figcaption class="grafico__legenda">{{ titulo }}</figcaption>
+  <ol class="grafico__barras" aria-hidden="true">
+    {% for b in serie.barras %}
+    <li class="grafico__mes{% if forloop.last %} grafico__mes--atual{% endif %}">
+      <span class="grafico__coluna"><span class="grafico__barra" style="height: {{ b.altura }}%"></span></span>
+      <span class="grafico__dica">{{ b.rotulo }}/{{ b.ano }}: {{ b.valor }}</span>
+      {% if forloop.last %}<span class="grafico__valor">{{ b.valor }}</span>{% endif %}
+      <span class="grafico__rotulo">{{ b.rotulo }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  <table class="visually-hidden">
+    <caption>{{ titulo }}</caption>
+    <thead><tr><th scope="col">Mês</th><th scope="col">Quantidade</th></tr></thead>
+    <tbody>{% for b in serie.barras %}<tr><th scope="row">{{ b.rotulo }}/{{ b.ano }}</th><td>{{ b.valor }}</td></tr>{% endfor %}</tbody>
+  </table>
+</figure>

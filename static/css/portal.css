@@ -63,3 +63,5 @@ input[type=checkbox] { margin-right: 6px; }
 
 .rodape { background: var(--superficie); border-top: 1px solid var(--borda); padding: 24px 0; font-size: .9rem; }
 .rodape p { margin: 4px 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 8px 0; }

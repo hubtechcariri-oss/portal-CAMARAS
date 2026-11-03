@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.db import models
 
 from .models import Camara
 
@@ -9,7 +11,27 @@ def camaras_do_usuario(usuario):
     return Camara.objects.filter(membros__usuario=usuario)
 
 
-class AdminDaCamara(admin.ModelAdmin):
+class RestringeRelacoesMixin:
+    """Em listas de seleção (FK e M2M), só oferece registros das câmaras do usuário."""
+
+    def _restringir(self, db_field, request, kwargs):
+        if db_field.name == "camara":
+            kwargs["queryset"] = camaras_do_usuario(request.user)
+        elif hasattr(db_field.related_model, "camara") and not request.user.is_superuser:
+            kwargs["queryset"] = db_field.related_model.objects.filter(
+                camara__in=camaras_do_usuario(request.user)
+            )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        self._restringir(db_field, request, kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        self._restringir(db_field, request, kwargs)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+class AdminDaCamara(RestringeRelacoesMixin, admin.ModelAdmin):
     """Admin que só mostra e só permite gravar conteúdo das câmaras do usuário.
 
     Se o usuário pertence a uma única câmara, o campo `camara` some do formulário
@@ -32,23 +54,6 @@ class AdminDaCamara(admin.ModelAdmin):
             excluidos.append("camara")
         return excluidos
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "camara":
-            kwargs["queryset"] = camaras_do_usuario(request.user)
-        elif hasattr(db_field.related_model, "camara") and not request.user.is_superuser:
-            # Relações com outro conteúdo (ex.: autor de uma matéria) também ficam restritas.
-            kwargs["queryset"] = db_field.related_model.objects.filter(
-                camara__in=camaras_do_usuario(request.user)
-            )
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if hasattr(db_field.related_model, "camara") and not request.user.is_superuser:
-            kwargs["queryset"] = db_field.related_model.objects.filter(
-                camara__in=camaras_do_usuario(request.user)
-            )
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
-
     def save_model(self, request, obj, form, change):
         unica = self._camara_unica(request)
         if unica and not obj.camara_id:
@@ -56,3 +61,28 @@ class AdminDaCamara(admin.ModelAdmin):
         if not request.user.is_superuser and obj.camara not in camaras_do_usuario(request.user):
             raise PermissionError("Usuário não pertence a esta câmara.")
         super().save_model(request, obj, form, change)
+
+
+class FormDaCamara(forms.ModelForm):
+    """Impede ligar conteúdo de câmaras diferentes (ex.: autor da Câmara B numa matéria da Câmara A).
+
+    Relevante sobretudo para superusuários, que enxergam todas as câmaras.
+    """
+
+    def clean(self):
+        dados = super().clean()
+        camara = dados.get("camara") or (self.instance.camara if self.instance.camara_id else None)
+        if camara is None:
+            return dados
+        for nome, valor in list(dados.items()):
+            if nome == "camara" or valor is None:
+                continue
+            itens = valor if hasattr(valor, "__iter__") and not isinstance(valor, (str, bytes)) else [valor]
+            for item in itens:
+                if hasattr(item, "camara_id") and isinstance(item, models.Model) and item.camara_id != camara.pk:
+                    self.add_error(nome, f"“{item}” pertence a outra câmara.")
+                    break
+        return dados
+
+
+AdminDaCamara.form = FormDaCamara

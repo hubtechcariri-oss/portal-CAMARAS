@@ -8,6 +8,8 @@ SaaS de portal institucional e de transparência para câmaras municipais. Um c�
 - **Isolamento.** Todo conteúdo herda `ModeloDaCamara`. As views consultam `Modelo.objects.da_camara(request.camara)`, e o admin (`AdminDaCamara`) mostra e grava apenas dados das câmaras do usuário. Testes em `apps/camaras/tests/test_isolamento.py`.
 - **Portal público acessível**, renderizado no servidor: atalhos de teclado do eMAG, alto contraste, ajuste de fonte, VLibras e layout responsivo.
 - **Vereadores, legislaturas, notícias.**
+- **Sessões plenárias**: pauta, ata, vídeo, presenças e matérias deliberadas.
+- **Matérias legislativas**: autoria (vereadores e/ou autor externo), situação, tramitação com resultado de votação e vínculo com a norma gerada. Filtros por tipo, ano, situação, autor e busca textual. Perfil do vereador mostra matérias de autoria e presenças.
 - **Legislação** com busca em português que ignora acentos (configuração `portugues` do Postgres: `unaccent` + stemmer).
 - **Transparência**: um catálogo de categorias comum à plataforma (editável no admin, sem mexer em código) e documentos por câmara, com arquivo, link externo ou ambos.
 - **Dados abertos**: as listagens de legislação e transparência aceitam `?formato=csv` ou `?formato=json`.
@@ -54,4 +56,4 @@ Os testes exigem Postgres, porque a busca textual e a extensão `unaccent` são 
 
 ## Próximos passos
 
-Veja a seção "Fases do MVP" em `docs/proposta-inicial.md`. Os principais: painel de conformidade PNTP, alertas de prazo, sessões e matérias, importação em massa, RLS e trilha de auditoria.
+Veja a seção "Fases do MVP" em `docs/proposta-inicial.md`. Os principais: painel de conformidade PNTP, alertas de prazo, comissões, importação em massa, RLS e trilha de auditoria.

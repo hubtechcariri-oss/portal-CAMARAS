@@ -1,5 +1,10 @@
 {% extends "portal/base.html" %}
-{% block titulo %}{{ vereador.nome_parlamentar }} · {% endblock %}
+{% block titulo %}{{ vereador.nome_parlamentar }} · {% if materias %}
+<h2>Matérias de autoria</h2>
+<ul>{% for m in materias %}<li><a href="{% url 'materia' m.pk %}">{{ m }}</a>: {{ m.ementa|truncatewords:15 }}</li>{% endfor %}</ul>
+{% if total_materias > materias|length %}<p><a href="{% url 'materias' %}?autor={{ vereador.pk }}">Ver todas as {{ total_materias }} matérias</a></p>{% endif %}
+{% endif %}
+{% endblock %}
 {% block conteudo %}
 <h1>{{ vereador.nome_parlamentar }}</h1>
 {% if vereador.foto %}<img src="{{ vereador.foto.url }}" alt="Foto de {{ vereador.nome_parlamentar }}" width="240">{% endif %}
@@ -10,5 +15,14 @@
   {% if vereador.email %}<dt>E-mail</dt><dd><a href="mailto:{{ vereador.email }}">{{ vereador.email }}</a></dd>{% endif %}
   {% with legs=vereador.legislaturas.all %}{% if legs %}<dt>Legislaturas</dt><dd>{{ legs|join:", " }}</dd>{% endif %}{% endwith %}
 </dl>
+<p>
+  <strong>{{ total_materias }}</strong> matéria(s) de autoria ·
+  <strong>{{ total_presencas }}</strong> presença(s) em sessões
+</p>
 {% if vereador.biografia %}<h2>Biografia</h2>{{ vereador.biografia|linebreaks }}{% endif %}
+{% if materias %}
+<h2>Matérias de autoria</h2>
+<ul>{% for m in materias %}<li><a href="{% url 'materia' m.pk %}">{{ m }}</a>: {{ m.ementa|truncatewords:15 }}</li>{% endfor %}</ul>
+{% if total_materias > materias|length %}<p><a href="{% url 'materias' %}?autor={{ vereador.pk }}">Ver todas as {{ total_materias }} matérias</a></p>{% endif %}
+{% endif %}
 {% endblock %}

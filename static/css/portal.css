@@ -190,3 +190,13 @@ input[type=checkbox] { margin-right: 6px; }
 .rodape li, .rodape p { margin: 4px 0; }
 dt { font-weight: 600; }
 dd { margin: 0 0 8px 0; }
+
+/* Texto rico das notícias (editor do painel). */
+.texto-rico { max-width: 72ch; }
+.texto-rico h2 { font-size: 1.35rem; margin: 1.6em 0 .5em; }
+.texto-rico h3 { font-size: 1.15rem; margin: 1.4em 0 .4em; }
+.texto-rico ul, .texto-rico ol { padding-left: 1.4em; margin: 0 0 1em; }
+.texto-rico li + li { margin-top: .3em; }
+.texto-rico blockquote { margin: 1.2em 0; padding: .6em 1em; border-left: 4px solid currentColor; opacity: .9; font-style: italic; }
+.texto-rico div { margin: 0 0 1em; }
+.texto-rico a { text-decoration: underline; }

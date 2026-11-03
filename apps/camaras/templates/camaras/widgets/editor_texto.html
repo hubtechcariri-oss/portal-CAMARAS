@@ -1,0 +1,35 @@
+{# Barra própria (o Trix só monta a padrão quando a <trix-toolbar> está vazia): só os botões aprovados. #}
+<div class="editor-texto">
+  <input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id }}" value="{{ widget.value|default_if_none:'' }}">
+  <trix-toolbar id="{{ widget.attrs.id }}_barra"><div class="trix-button-row">
+    <span class="trix-button-group" data-trix-button-group="text-tools">
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-heading-1" data-trix-attribute="heading1" title="Subtítulo">Subtítulo</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-bold" data-trix-attribute="bold" data-trix-key="b" title="Negrito (Ctrl+B)">Negrito</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-italic" data-trix-attribute="italic" data-trix-key="i" title="Itálico (Ctrl+I)">Itálico</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-link" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link (Ctrl+K)">Link</button>
+    </span>
+    <span class="trix-button-group" data-trix-button-group="block-tools">
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-quote" data-trix-attribute="quote" title="Citação">Citação</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-bullet-list" data-trix-attribute="bullet" title="Lista com marcadores">Lista</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-number-list" data-trix-attribute="number" title="Lista numerada">Lista numerada</button>
+    </span>
+    <span class="trix-button-group-spacer"></span>
+    <span class="trix-button-group" data-trix-button-group="history-tools">
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-undo" data-trix-action="undo" data-trix-key="z" title="Desfazer">Desfazer</button>
+      <button type="button" class="trix-button trix-button--icon trix-button--icon-redo" data-trix-action="redo" data-trix-key="shift+z" title="Refazer">Refazer</button>
+    </span>
+  </div>
+  <div class="trix-dialogs" data-trix-dialogs>
+    <div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
+      <div class="trix-dialog__link-fields">
+        <input type="url" name="href" class="trix-input trix-input--dialog" placeholder="https://…" aria-label="Endereço do link" required data-trix-input>
+        <div class="trix-button-group">
+          <input type="button" class="trix-button trix-button--dialog" value="Aplicar" data-trix-method="setAttribute">
+          <input type="button" class="trix-button trix-button--dialog" value="Remover link" data-trix-method="removeAttribute">
+        </div>
+      </div>
+    </div>
+  </div></trix-toolbar>
+  <trix-editor input="{{ widget.attrs.id }}" toolbar="{{ widget.attrs.id }}_barra" class="trix-content editor-texto__area"
+    aria-label="{{ widget.attrs.aria_label|default:'Texto' }}"></trix-editor>
+</div>

@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: portal
       DJANGO_DEBUG: "true"
       DJANGO_USE_X_FORWARDED_HOST: "true"
-      DJANGO_CSRF_TRUSTED_ORIGINS: "https://*.app.github.dev"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "https://*.app.github.dev,https://localhost:8000"  # o proxy do Codespaces reescreve o Origin para localhost
     depends_on: [db]
   db:
     image: postgres:16

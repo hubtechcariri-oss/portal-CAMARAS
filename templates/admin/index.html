@@ -1,0 +1,44 @@
+{% extends "admin/index.html" %}
+{% load painel %}
+
+{% block content %}
+{% painel_resumo as resumo %}
+<div class="painel-inicio">
+  <p class="painel-saudacao">Olá, {{ user.get_short_name|default:user.get_username }}. O que você quer fazer hoje?</p>
+
+  {% if resumo.filas %}
+  <section class="painel-bloco" aria-labelledby="t-pendencias">
+    <h2 id="t-pendencias" class="painel-titulo">Atendimento ao cidadão</h2>
+    <div class="painel-filas">
+      {% for f in resumo.filas %}
+      <a class="painel-fila{% if f.vencidas %} painel-fila--alerta{% elif f.vencendo %} painel-fila--atencao{% endif %}" href="{{ f.url }}">
+        <span class="painel-fila__rotulo">{{ f.rotulo }}</span>
+        <span class="painel-fila__numero">{{ f.abertas }}</span>
+        <span class="painel-fila__detalhe">
+          em aberto
+          {% if f.vencidas %}· <strong>{{ f.vencidas }} com prazo vencido</strong>{% endif %}
+          {% if f.vencendo %}· {{ f.vencendo }} vence{{ f.vencendo|pluralize:"m" }} em até {{ resumo.alerta_dias }} dias{% endif %}
+          {% if not f.abertas %}· tudo em dia{% endif %}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if resumo.atalhos %}
+  <section class="painel-bloco" aria-labelledby="t-atalhos">
+    <h2 id="t-atalhos" class="painel-titulo">Atalhos</h2>
+    <ul class="painel-atalhos">
+      {% for a in resumo.atalhos %}
+      <li><a href="{{ a.url }}">{% include "portal/icones/"|add:a.icone|add:".svg" %}<span>{{ a.rotulo }}</span></a></li>
+      {% endfor %}
+      <li><a href="/" target="_blank" rel="noopener">{% include "portal/icones/info.svg" %}<span>Ver o portal</span></a></li>
+    </ul>
+  </section>
+  {% endif %}
+
+  <h2 class="painel-titulo">Todas as áreas</h2>
+</div>
+{{ block.super }}
+{% endblock %}

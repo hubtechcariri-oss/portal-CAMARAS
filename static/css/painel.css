@@ -1,0 +1,126 @@
+/* Tema do painel administrativo: usa a cor da câmara e deixa as telas mais leves. */
+:root, html[data-theme="light"], html[data-theme="dark"] {
+  --painel-cor: #0b4f8a;
+  --painel-destaque: #e0a526;
+  --painel-raio: 10px;
+  --painel-cartao: #fff;
+}
+html[data-theme="light"] {
+  --primary: var(--painel-cor);
+  --secondary: color-mix(in srgb, var(--painel-cor) 82%, #000);
+  --accent: var(--painel-destaque);
+  --header-bg: var(--painel-cor);
+  --header-color: #fff;
+  --header-link-color: #fff;
+  --header-branding-color: #fff;
+  --breadcrumbs-bg: color-mix(in srgb, var(--painel-cor) 10%, #fff);
+  --breadcrumbs-fg: #33415c;
+  --breadcrumbs-link-fg: var(--painel-cor);
+  --link-fg: var(--painel-cor);
+  --link-hover-color: color-mix(in srgb, var(--painel-cor) 70%, #000);
+  --link-selected-fg: var(--painel-cor);
+  --button-bg: var(--painel-cor);
+  --button-hover-bg: color-mix(in srgb, var(--painel-cor) 80%, #000);
+  --default-button-bg: color-mix(in srgb, var(--painel-cor) 80%, #000);
+  --default-button-hover-bg: color-mix(in srgb, var(--painel-cor) 65%, #000);
+  --selected-row: color-mix(in srgb, var(--painel-destaque) 18%, #fff);
+  --body-bg: #f4f6f9;
+  --darkened-bg: #eef1f5;
+  --hairline-color: #e1e5eb;
+  --border-color: #d5dae1;
+}
+@media (prefers-color-scheme: light) {
+  html:not([data-theme="dark"]) {
+    --primary: var(--painel-cor);
+    --secondary: color-mix(in srgb, var(--painel-cor) 82%, #000);
+    --accent: var(--painel-destaque);
+    --header-bg: var(--painel-cor);
+    --header-color: #fff;
+    --header-link-color: #fff;
+    --header-branding-color: #fff;
+    --breadcrumbs-bg: color-mix(in srgb, var(--painel-cor) 10%, #fff);
+    --breadcrumbs-fg: #33415c;
+    --breadcrumbs-link-fg: var(--painel-cor);
+    --link-fg: var(--painel-cor);
+    --link-hover-color: color-mix(in srgb, var(--painel-cor) 70%, #000);
+    --link-selected-fg: var(--painel-cor);
+    --button-bg: var(--painel-cor);
+    --button-hover-bg: color-mix(in srgb, var(--painel-cor) 80%, #000);
+    --default-button-bg: color-mix(in srgb, var(--painel-cor) 80%, #000);
+    --default-button-hover-bg: color-mix(in srgb, var(--painel-cor) 65%, #000);
+    --selected-row: color-mix(in srgb, var(--painel-destaque) 18%, #fff);
+    --body-bg: #f4f6f9;
+    --darkened-bg: #eef1f5;
+    --hairline-color: #e1e5eb;
+    --border-color: #d5dae1;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --header-bg: color-mix(in srgb, var(--painel-cor) 55%, #000);
+    --primary: color-mix(in srgb, var(--painel-cor) 55%, #000);
+    --painel-cartao: #1e1f22;
+  }
+}
+html[data-theme="dark"] {
+  --header-bg: color-mix(in srgb, var(--painel-cor) 55%, #000);
+  --primary: color-mix(in srgb, var(--painel-cor) 55%, #000);
+  --painel-cartao: #1e1f22;
+}
+
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+/* Cabeçalho com brasão */
+#header { padding: 10px 32px; border-bottom: 3px solid var(--painel-destaque); align-items: center; }
+#site-name { margin: 0; }
+.painel-marca { display: flex; align-items: center; gap: 12px; text-decoration: none !important; }
+.painel-marca__brasao { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+.painel-marca__texto { display: flex; flex-direction: column; line-height: 1.2; }
+.painel-marca__nome { font-size: 1.15rem; font-weight: 700; color: #fff; }
+.painel-marca__sub { font-size: .78rem; font-weight: 400; color: rgba(255,255,255,.85); text-transform: none; letter-spacing: 0; }
+#user-tools { font-size: .8rem; }
+div.breadcrumbs { padding: 10px 32px; }
+
+/* Caixas mais leves */
+.module { border-radius: var(--painel-raio); overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.module h2, .module caption, .inline-group h2 { background: var(--primary); font-size: .85rem; letter-spacing: .02em; padding: 10px 14px; }
+.dashboard .module table, #changelist .results, fieldset.module { background: var(--painel-cartao); }
+.button, input[type=submit], input[type=button], .submit-row input, a.button { border-radius: 6px; padding: 9px 16px; }
+.submit-row { border-radius: var(--painel-raio); }
+.object-tools a { border-radius: 999px; }
+.help, .help p, div.help { color: var(--body-quiet-color); font-size: .8rem; }
+.form-row .readonly img { box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+#changelist-filter { border-radius: var(--painel-raio); overflow: hidden; }
+#nav-sidebar .current-model { background: var(--selected-row); }
+
+/* Página inicial do painel */
+.dashboard #content { width: auto; max-width: 1280px; }
+.dashboard #content-main { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0 20px; align-items: start; }
+.dashboard #content-main > .painel-inicio { grid-column: 1 / -1; }
+.dashboard #content-main > .module { margin-bottom: 20px; }
+.painel-inicio { margin-bottom: 8px; }
+.painel-saudacao { font-size: 1.05rem; margin: 0 0 18px; color: var(--body-fg); }
+.painel-bloco { margin-bottom: 24px; }
+.painel-titulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--body-quiet-color); margin: 0 0 10px; padding: 0; background: none; font-weight: 700; }
+.painel-filas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.painel-fila { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 16px 18px; border-radius: var(--painel-raio); background: var(--painel-cartao); border: 1px solid var(--hairline-color); border-left: 5px solid #2e8b57; text-decoration: none !important; color: var(--body-fg) !important; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.painel-fila:hover { border-color: var(--painel-cor); }
+.painel-fila--atencao { border-left-color: var(--painel-destaque); }
+.painel-fila--alerta { border-left-color: #c0392b; }
+.painel-fila__rotulo { font-weight: 600; }
+.painel-fila__numero { grid-row: span 2; font-size: 2rem; font-weight: 700; color: var(--link-fg); align-self: center; }
+.painel-fila--alerta .painel-fila__numero { color: #c0392b; }
+.painel-fila__detalhe { font-size: .8rem; color: var(--body-quiet-color); }
+.painel-fila--alerta strong { color: #c0392b; }
+.painel-atalhos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.painel-atalhos li { list-style: none; padding: 0; }
+.painel-atalhos a { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 16px 10px; border-radius: var(--painel-raio); background: var(--painel-cartao); border: 1px solid var(--hairline-color); font-weight: 600; font-size: .82rem; color: var(--body-fg) !important; text-decoration: none !important; line-height: 1.25; transition: border-color .15s, transform .15s; }
+.painel-atalhos a:hover { border-color: var(--painel-cor); transform: translateY(-1px); }
+.painel-atalhos svg { width: 28px; height: 28px; color: var(--link-fg); }
+@media (prefers-reduced-motion: reduce) { .painel-atalhos a { transition: none; } .painel-atalhos a:hover { transform: none; } }
+
+@media (max-width: 767px) {
+  #header { padding: 10px 16px; }
+  div.breadcrumbs { padding: 10px 16px; }
+  .painel-marca__brasao { width: 36px; height: 36px; }
+}

@@ -77,6 +77,7 @@ class Command(BaseCommand):
             for h in hosts:
                 Dominio.objects.get_or_create(host=h, defaults={"camara": existente.camara})
             self.garantir_visual(existente.camara)
+            self.garantir_atendimento(existente.camara)
             self.stdout.write(f"A câmara de demonstração já existe ({', '.join(hosts)}). Visual conferido.")
             return
         host = hosts[0]
@@ -124,6 +125,7 @@ class Command(BaseCommand):
                                  titulo="Consulta de despesas no sistema contábil", data=date(2026, 1, 1),
                                  link_externo="https://exemplo.com/despesas")
         self.garantir_visual(camara)
+        self.garantir_atendimento(camara)
         self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em: {', '.join(hosts)}"))
 
     def garantir_visual(self, camara):
@@ -161,3 +163,28 @@ class Command(BaseCommand):
             if not n.imagem:
                 n.texto_alternativo = n.texto_alternativo or "Ilustração abstrata com gráfico de barras."
                 n.imagem.save(f"{slug}.jpg", img.imagem_noticia(i, c1, c2, f"{slug}.jpg"))
+
+
+    def garantir_atendimento(self, camara):
+        """Pedidos e manifestações de exemplo, para o painel mostrar pendências e prazos."""
+        from apps.esic.models import Pedido
+        from apps.ouvidoria.models import Manifestacao
+
+        hoje = timezone.localdate()
+        if not Pedido.objects.da_camara(camara).exists():
+            for texto, dias_restantes in [
+                ("Solicito a relação de contratos de locação de veículos vigentes em 2026.", -2),
+                ("Peço cópia da ata da 30ª sessão ordinária.", 3),
+                ("Quais foram as despesas com diárias no primeiro semestre?", 15),
+            ]:
+                p = Pedido.objects.create(camara=camara, nome="Cidadão de exemplo", email="cidadao@exemplo.com",
+                                          pedido=texto)
+                Pedido.objects.filter(pk=p.pk).update(prazo=hoje + timedelta(days=dias_restantes))
+        if not Manifestacao.objects.da_camara(camara).exists():
+            for tipo, assunto, dias_restantes in [
+                ("reclamacao", "Iluminação da praça em frente à Câmara", 20),
+                ("sugestao", "Transmitir as sessões também pelo rádio", 4),
+            ]:
+                m = Manifestacao.objects.create(camara=camara, tipo=tipo, assunto=assunto,
+                                                descricao="Manifestação de exemplo.", anonima=True)
+                Manifestacao.objects.filter(pk=m.pk).update(prazo=hoje + timedelta(days=dias_restantes))

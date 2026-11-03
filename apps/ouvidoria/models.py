@@ -30,7 +30,7 @@ class Manifestacao(ModeloDaCamara):
     ABERTAS = (Situacao.RECEBIDA, Situacao.EM_ANALISE, Situacao.PRORROGADA)
 
     protocolo = models.CharField(max_length=20, editable=False)
-    codigo_consulta = models.CharField(max_length=16, editable=False)
+    codigo_consulta = models.CharField("código de consulta", max_length=16, editable=False)
     tipo = models.CharField(max_length=12, choices=Tipo.choices)
     assunto = models.CharField(max_length=200)
     descricao = models.TextField("descrição")

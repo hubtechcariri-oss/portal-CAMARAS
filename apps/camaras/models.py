@@ -8,7 +8,7 @@ class Camara(models.Model):
     """Um cliente do SaaS: uma câmara municipal (o "tenant")."""
 
     nome = models.CharField(max_length=200, help_text="Ex.: Câmara Municipal de Exemplo")
-    municipio = models.CharField(max_length=120)
+    municipio = models.CharField("município", max_length=120)
     uf = models.CharField("UF", max_length=2)
     cnpj = models.CharField("CNPJ", max_length=18, blank=True)
     endereco = models.CharField("endereço", max_length=255, blank=True)
@@ -19,7 +19,7 @@ class Camara(models.Model):
         "encarregado (LGPD)", max_length=200, blank=True,
         help_text="Nome e contato do encarregado pelo tratamento de dados (LGPD, art. 41).",
     )
-    cor_primaria = models.CharField(max_length=7, default="#0b4f8a", help_text="Cor em hexadecimal.")
+    cor_primaria = models.CharField("cor primária", max_length=7, default="#0b4f8a", help_text="Cor em hexadecimal.")
     brasao = ImagemPadronizada(
         "brasão", upload_to=CaminhoMidia("identidade"), blank=True, formato="brasao",
     )
@@ -50,7 +50,7 @@ class IdentidadePortal(Camara):
 class Dominio(models.Model):
     """Domínios que respondem por uma câmara (ex.: camaraexemplo.ce.leg.br)."""
 
-    camara = models.ForeignKey(Camara, on_delete=models.CASCADE, related_name="dominios")
+    camara = models.ForeignKey(Camara, verbose_name="câmara", on_delete=models.CASCADE, related_name="dominios")
     host = models.CharField(max_length=253, unique=True, help_text="Sem http:// e sem porta.")
     principal = models.BooleanField(default=False)
 
@@ -69,7 +69,7 @@ class Membro(models.Model):
     """Vincula um usuário do painel a uma câmara. Um usuário só administra as câmaras às quais pertence."""
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="membros")
-    camara = models.ForeignKey(Camara, on_delete=models.CASCADE, related_name="membros")
+    camara = models.ForeignKey(Camara, verbose_name="câmara", on_delete=models.CASCADE, related_name="membros")
 
     class Meta:
         unique_together = [("usuario", "camara")]
@@ -93,7 +93,7 @@ class ModeloDaCamara(models.Model):
     câmaras do usuário (ver admin_mixins.AdminDaCamara).
     """
 
-    camara = models.ForeignKey(Camara, on_delete=models.CASCADE, related_name="+")
+    camara = models.ForeignKey(Camara, verbose_name="câmara", on_delete=models.CASCADE, related_name="+")
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 

@@ -213,3 +213,14 @@ summary:focus-visible, [tabindex]:focus-visible, .button:focus-visible {
 .submit-row a.deletelink { height: auto; }
 .module, fieldset.module, #changelist .results, .painel-fila, .painel-atalhos a { border-color: var(--cartao-borda); }
 .module, .submit-row, #changelist-filter, .painel-fila, .painel-atalhos a { border-radius: var(--raio-cartao); }
+
+/* ---------------------------------------------------------------------------
+   Campos obrigatórios (tarefa 2): asterisco no rótulo e legenda no topo.
+   O campo já leva o atributo `required`, que o leitor de tela anuncia.
+   --------------------------------------------------------------------------- */
+.form-row label.required::after,
+.aligned .form-row label.required:not(.vCheckboxLabel)::after {
+  content: " *"; color: var(--estado-critico); font-weight: 700; max-height: none; vertical-align: baseline; white-space: pre;
+}
+.marca-obrigatorio { color: var(--estado-critico); font-weight: 700; }
+.legenda-obrigatorio { margin: 0 0 var(--esp-3); color: var(--texto-apoio); font-size: var(--fs-apoio); }

@@ -21,7 +21,7 @@ class Pedido(ModeloDaCamara):
 
     protocolo = models.CharField(max_length=20, editable=False)
     codigo_consulta = models.CharField(
-        max_length=16, editable=False,
+        "código de consulta", max_length=16, editable=False,
         help_text="Código secreto entregue ao cidadão para acompanhar o pedido.",
     )
     # LGPD: coletamos só o necessário para identificar e responder (LAI, art. 10).

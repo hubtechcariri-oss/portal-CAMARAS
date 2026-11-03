@@ -47,7 +47,16 @@ Tudo o que aparece no portal pode ser trocado pelo painel, sem mexer em código:
 | Fotos dos vereadores | Legislativo › Vereadores |
 | PDFs de leis, pautas, atas, matérias e transparência | no cadastro de cada item |
 
-Os arquivos ficam em `media/camara_<id>/<tipo>/<ano>/`, separados por câmara. Imagens aceitam JPG, PNG, WebP e GIF até 5 MB; documentos, PDF e formatos de escritório até 30 MB (`apps/camaras/midia.py`).
+Os arquivos ficam em `media/camara_<id>/<tipo>/<ano>/`, separados por câmara. Imagens aceitam JPG, PNG e WebP até 5 MB; documentos, PDF e formatos de escritório até 30 MB. Cada espaço do layout tem um tamanho fixo, mostrado ao lado do campo de envio:
+
+| Imagem | Tamanho ideal | Mínimo aceito | Ao salvar |
+|---|---|---|---|
+| Banner | 1600 × 500 px | 1200 × 375 px | recorta pelo centro e reduz |
+| Notícia e página | 1200 × 675 px (16:9) | 800 × 450 px | recorta pelo centro e reduz |
+| Foto de vereador | 600 × 600 px | 300 × 300 px | recorta pelo centro e reduz |
+| Brasão | 512 × 512 px (PNG transparente) | 128 × 128 px | só reduz, sem recorte |
+
+Os tamanhos ficam em `FORMATOS`, em `apps/camaras/midia.py`.
 
 Para quem cuida da comunicação da câmara, coloque o usuário no grupo **Comunicação** (criado automaticamente) e vincule-o à câmara.
 

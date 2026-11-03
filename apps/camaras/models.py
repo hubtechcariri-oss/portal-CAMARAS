@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from .midia import VALIDA_IMAGEM, CaminhoMidia
+from .midia import CaminhoMidia, ImagemPadronizada
 
 
 class Camara(models.Model):
@@ -20,9 +20,8 @@ class Camara(models.Model):
         help_text="Nome e contato do encarregado pelo tratamento de dados (LGPD, art. 41).",
     )
     cor_primaria = models.CharField(max_length=7, default="#0b4f8a", help_text="Cor em hexadecimal.")
-    brasao = models.ImageField(
-        "brasão", upload_to=CaminhoMidia("identidade"), blank=True, validators=VALIDA_IMAGEM,
-        help_text="PNG com fundo transparente, de preferência quadrado (mínimo 256 × 256 px).",
+    brasao = ImagemPadronizada(
+        "brasão", upload_to=CaminhoMidia("identidade"), blank=True, formato="brasao",
     )
     facebook = models.URLField(blank=True)
     instagram = models.URLField(blank=True)

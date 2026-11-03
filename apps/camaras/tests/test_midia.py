@@ -17,9 +17,9 @@ from .fabrica import criar_camara
 MIDIA = tempfile.mkdtemp()
 
 
-def png(nome="brasao.png"):
+def png(nome="brasao.png", tamanho=(300, 300)):
     buf = io.BytesIO()
-    Image.new("RGB", (8, 8), "navy").save(buf, "PNG")
+    Image.new("RGB", tamanho, "navy").save(buf, "PNG")
     return SimpleUploadedFile(nome, buf.getvalue(), content_type="image/png")
 
 
@@ -53,13 +53,14 @@ class IdentidadePortalTests(TestCase):
     def test_troca_brasao_e_redes_e_aparece_no_portal(self):
         url = f"/admin/camaras/identidadeportal/{self.a.pk}/change/"
         r = self.client.post(url, {
-            "brasao": png(), "cor_primaria": "#123456", "instagram": "https://instagram.com/camaraa",
+            "brasao": png(tamanho=(300, 300)), "cor_primaria": "#123456", "instagram": "https://instagram.com/camaraa",
             "facebook": "", "youtube": "", "endereco": "", "telefone": "", "email": "",
             "horario_atendimento": "", "encarregado_lgpd": "", "cnpj": "",
         }, HTTP_HOST="camara-a.test")
         self.assertEqual(r.status_code, 302, getattr(r, "context", None) and r.context["adminform"].form.errors)
         self.a.refresh_from_db()
         self.assertTrue(self.a.brasao.name.startswith(f"camara_{self.a.pk}/identidade/"))
+        self.assertEqual((self.a.brasao.width, self.a.brasao.height), (300, 300))  # brasão não é recortado
         pagina = self.client.get("/", HTTP_HOST="camara-a.test")
         self.assertContains(pagina, self.a.brasao.url)
         self.assertContains(pagina, "#123456")
@@ -67,13 +68,30 @@ class IdentidadePortalTests(TestCase):
 
     def test_comunicacao_cadastra_banner(self):
         r = self.client.post("/admin/conteudo/banner/add/", {
-            "titulo": "Novo destaque", "imagem": png("destaque.png"), "rotulo_link": "Saiba mais", "ordem": 0,
+            "titulo": "Novo destaque", "imagem": png("destaque.png", (2000, 1500)), "rotulo_link": "Saiba mais", "ordem": 0,
             "inicio_0": "01/01/2026", "inicio_1": "00:00:00", "ativo": "on",
         }, HTTP_HOST="camara-a.test")
         self.assertEqual(r.status_code, 302)
         banner = Banner.objects.get(titulo="Novo destaque")
         self.assertEqual(banner.camara, self.a)
         self.assertTrue(banner.imagem.name.startswith(f"camara_{self.a.pk}/banners/"))
+        # Foto 4:3 enviada no lugar do banner: sai recortada no tamanho do layout.
+        self.assertEqual((banner.imagem.width, banner.imagem.height), (1600, 500))
+        self.assertTrue(banner.imagem.name.endswith(".jpg"))
+
+    def test_recusa_banner_pequeno_com_mensagem_clara(self):
+        r = self.client.post("/admin/conteudo/banner/add/", {
+            "titulo": "Pequeno", "imagem": png("p.png", (640, 480)), "rotulo_link": "Saiba mais", "ordem": 0,
+            "inicio_0": "01/01/2026", "inicio_1": "00:00:00", "ativo": "on",
+        }, HTTP_HOST="camara-a.test")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "640 × 480 px e é pequena demais")
+        self.assertFalse(Banner.objects.filter(titulo="Pequeno").exists())
+
+    def test_formulario_mostra_tamanho_ideal(self):
+        r = self.client.get("/admin/conteudo/banner/add/", HTTP_HOST="camara-a.test")
+        self.assertContains(r, "Tamanho ideal: 1600 × 500 px")
+        self.assertContains(r, 'accept="image/jpeg,image/png,image/webp"')
 
 
 class ValidacaoMidiaTests(TestCase):

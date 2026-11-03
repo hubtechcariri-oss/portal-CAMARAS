@@ -1,6 +1,7 @@
 from django.db import models
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.midia import VALIDA_DOCUMENTO, VALIDA_IMAGEM, CaminhoMidia
 
 
 class Legislatura(ModeloDaCamara):
@@ -20,7 +21,10 @@ class Vereador(ModeloDaCamara):
     nome_parlamentar = models.CharField(max_length=120)
     nome_civil = models.CharField(max_length=200, blank=True)
     partido = models.CharField(max_length=30, blank=True)
-    foto = models.ImageField(upload_to="vereadores/", blank=True)
+    foto = models.ImageField(
+        upload_to=CaminhoMidia("vereadores"), blank=True, validators=VALIDA_IMAGEM,
+        help_text="Foto de rosto, de preferência quadrada (mínimo 400 × 400 px).",
+    )
     biografia = models.TextField(blank=True)
     email = models.EmailField("e-mail", blank=True)
     legislaturas = models.ManyToManyField(Legislatura, blank=True, related_name="vereadores")
@@ -56,7 +60,7 @@ class Norma(ModeloDaCamara):
     data = models.DateField()
     ementa = models.TextField()
     texto = models.TextField(blank=True, help_text="Texto integral, usado na busca.")
-    arquivo = models.FileField(upload_to="normas/%Y/", blank=True)
+    arquivo = models.FileField(upload_to=CaminhoMidia("normas"), blank=True, validators=VALIDA_DOCUMENTO)
     publicada = models.BooleanField(default=True)
 
     class Meta:
@@ -81,8 +85,8 @@ class Sessao(ModeloDaCamara):
     data_hora = models.DateTimeField("data e hora")
     legislatura = models.ForeignKey(Legislatura, on_delete=models.PROTECT, null=True, blank=True)
     descricao = models.TextField("descrição", blank=True)
-    pauta = models.FileField(upload_to="sessoes/pautas/%Y/", blank=True)
-    ata = models.FileField(upload_to="sessoes/atas/%Y/", blank=True)
+    pauta = models.FileField(upload_to=CaminhoMidia("sessoes"), blank=True, validators=VALIDA_DOCUMENTO)
+    ata = models.FileField(upload_to=CaminhoMidia("sessoes"), blank=True, validators=VALIDA_DOCUMENTO)
     video_url = models.URLField("vídeo (link)", blank=True, help_text="Ex.: link do YouTube.")
     presentes = models.ManyToManyField(Vereador, blank=True, related_name="presencas")
     publicada = models.BooleanField(default=True)
@@ -125,7 +129,7 @@ class Materia(ModeloDaCamara):
     data_apresentacao = models.DateField("data de apresentação")
     ementa = models.TextField()
     texto = models.TextField(blank=True, help_text="Texto integral, usado na busca.")
-    arquivo = models.FileField(upload_to="materias/%Y/", blank=True)
+    arquivo = models.FileField(upload_to=CaminhoMidia("materias"), blank=True, validators=VALIDA_DOCUMENTO)
     autores = models.ManyToManyField(Vereador, blank=True, related_name="materias")
     autor_externo = models.CharField(
         max_length=120, blank=True, help_text="Quando o autor não é vereador: Poder Executivo, Mesa Diretora, comissão…"

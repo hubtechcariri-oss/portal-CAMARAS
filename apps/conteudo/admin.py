@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.utils.html import format_html
-
 from apps.camaras.admin_mixins import AdminDaCamara
+from apps.camaras.midia import previa
 
 from .models import Banner, Pagina
 
@@ -12,15 +11,25 @@ class BannerAdmin(AdminDaCamara):
     list_display_links = ["miniatura", "titulo"]
     list_editable = ["ordem", "ativo"]
     list_filter = ["ativo"]
+    readonly_fields = ["imagem_atual"]
 
     @admin.display(description="imagem")
     def miniatura(self, obj):
-        return format_html('<img src="{}" alt="" style="height:40px;border-radius:4px">', obj.imagem.url) if obj.imagem else "—"
+        return previa(obj.imagem, 40)
+
+    @admin.display(description="imagem atual")
+    def imagem_atual(self, obj):
+        return previa(obj.imagem, 160)
 
 
 @admin.register(Pagina)
 class PaginaAdmin(AdminDaCamara):
     list_display = ["titulo", "menu", "ordem", "publicada"]
+    readonly_fields = ["imagem_atual"]
+
+    @admin.display(description="imagem atual")
+    def imagem_atual(self, obj):
+        return previa(obj.imagem, 160)
     list_editable = ["ordem", "publicada"]
     list_filter = ["menu", "publicada"]
     search_fields = ["titulo", "corpo"]

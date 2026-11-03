@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from apps.camaras.admin_mixins import AdminDaCamara, RestringeRelacoesMixin
+from apps.camaras.midia import previa
 
 from .models import Legislatura, Materia, Norma, Sessao, Tramitacao, Vereador
 
@@ -12,10 +13,20 @@ class LegislaturaAdmin(AdminDaCamara):
 
 @admin.register(Vereador)
 class VereadorAdmin(AdminDaCamara):
-    list_display = ["nome_parlamentar", "partido", "cargo_mesa", "em_exercicio"]
+    list_display = ["miniatura", "nome_parlamentar", "partido", "cargo_mesa", "em_exercicio"]
+    list_display_links = ["miniatura", "nome_parlamentar"]
     list_filter = ["em_exercicio", "partido"]
     search_fields = ["nome_parlamentar", "nome_civil"]
     filter_horizontal = ["legislaturas"]
+    readonly_fields = ["foto_atual"]
+
+    @admin.display(description="foto")
+    def miniatura(self, obj):
+        return previa(obj.foto, 40, redonda=True)
+
+    @admin.display(description="foto atual")
+    def foto_atual(self, obj):
+        return previa(obj.foto, 120, redonda=True)
 
 
 @admin.register(Norma)

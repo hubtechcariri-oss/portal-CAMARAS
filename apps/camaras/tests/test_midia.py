@@ -103,3 +103,58 @@ class ValidacaoMidiaTests(TestCase):
         grande = SimpleUploadedFile("foto.jpg", b"x" * (2 * 1024 * 1024))
         with self.assertRaises(ValidationError):
             TamanhoMaximo(1)(grande)
+
+
+def foto_ruidosa(nome="foto.jpg", tamanho=(1600, 900)):
+    """JPEG com ruído (comprime mal), para testar o limite de peso da miniatura."""
+    import os
+
+    img = Image.frombytes("RGB", tamanho, os.urandom(tamanho[0] * tamanho[1] * 3))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=95)
+    return SimpleUploadedFile(nome, buf.getvalue(), content_type="image/jpeg")
+
+
+@override_settings(MEDIA_ROOT=MIDIA)
+class ListagensTests(TestCase):
+    def setUp(self):
+        self.camara = criar_camara("lista.test", "Câmara Municipal Lista")
+        self.admin = User.objects.create_superuser("adm_lista", "a@a.local", "x")
+        self.client.force_login(self.admin)
+
+    def test_miniatura_leve_na_lista_de_noticias(self):
+        from apps.camaras.midia import caminho_miniatura
+        from apps.noticias.models import Noticia
+
+        n = Noticia.objects.create(camara=self.camara, titulo="Com foto", slug="com-foto", corpo="x",
+                                   imagem=foto_ruidosa())
+        r = self.client.get("/admin/noticias/noticia/")
+        destino = caminho_miniatura(n.imagem.name)
+        self.assertContains(r, destino)
+        self.assertTrue(n.imagem.storage.exists(destino))
+        self.assertLessEqual(n.imagem.storage.size(destino), 20 * 1024)
+        with n.imagem.storage.open(destino) as f:
+            self.assertEqual(Image.open(f).size[0], 160)
+
+    def test_selo_publicada_agendada_rascunho(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.noticias.models import Noticia
+
+        agora = timezone.now()
+        Noticia.objects.create(camara=self.camara, titulo="No ar", slug="a", corpo="x")
+        Noticia.objects.create(camara=self.camara, titulo="Futura", slug="b", corpo="x",
+                               publicada_em=agora + timedelta(days=2))
+        Noticia.objects.create(camara=self.camara, titulo="Rascunho", slug="c", corpo="x", publicada=False)
+        r = self.client.get("/admin/noticias/noticia/")
+        self.assertContains(r, 'class="selo selo--ok">Publicada<')
+        self.assertContains(r, 'class="selo selo--atencao">Agendada<')
+        self.assertContains(r, 'class="selo selo--neutro">Rascunho<')
+        agendadas = self.client.get("/admin/noticias/noticia/?situacao_publicacao=agendada")
+        self.assertEqual([n.titulo for n in agendadas.context["cl"].result_list], ["Futura"])
+        # URL antiga do filtro booleano continua funcionando
+        antigas = self.client.get("/admin/noticias/noticia/?publicada__exact=0")
+        self.assertEqual(antigas.status_code, 200)
+        self.assertEqual(antigas.context["cl"].result_count, 1)

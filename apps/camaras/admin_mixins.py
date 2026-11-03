@@ -148,3 +148,62 @@ class FilaDeAtendimentoMixin:
         if request.GET.get(PrazoFilter.parameter_name) in ("abertas", "vencidas"):
             return ["prazo", "pk"]
         return super().get_ordering(request)
+
+
+# ---------------------------------------------------------------------------
+# Selos de situação nas listas (texto + cor; a cor nunca é a única pista).
+# ---------------------------------------------------------------------------
+
+def selo(estado, texto):
+    from django.utils.html import format_html
+
+    return format_html('<span class="selo selo--{}">{}</span>', estado, texto)
+
+
+def situacao_publicacao(publicada, quando=None):
+    """("publicada" | "agendada" | "rascunho", rótulo)."""
+    from django.utils import timezone
+
+    if not publicada:
+        return "rascunho", "Rascunho"
+    if quando and quando > timezone.now():
+        return "agendada", "Agendada"
+    return "publicada", "Publicada"
+
+
+ESTADO_DO_SELO = {"publicada": "ok", "agendada": "atencao", "rascunho": "neutro"}
+
+
+def selo_publicacao(publicada, quando=None):
+    chave, rotulo = situacao_publicacao(publicada, quando)
+    return selo(ESTADO_DO_SELO[chave], rotulo)
+
+
+class SituacaoPublicacaoFilter(admin.SimpleListFilter):
+    """Publicada / Agendada / Rascunho, para modelos com `publicada` e `publicada_em`."""
+
+    title = "situação"
+    parameter_name = "situacao_publicacao"
+
+    def lookups(self, request, model_admin):
+        return [("publicada", "Publicada"), ("agendada", "Agendada"), ("rascunho", "Rascunho")]
+
+    def queryset(self, request, queryset):
+        from django.utils import timezone
+
+        agora = timezone.now()
+        if self.value() == "publicada":
+            return queryset.filter(publicada=True, publicada_em__lte=agora)
+        if self.value() == "agendada":
+            return queryset.filter(publicada=True, publicada_em__gt=agora)
+        if self.value() == "rascunho":
+            return queryset.filter(publicada=False)
+        return queryset
+
+
+class ColunaPublicacaoMixin:
+    """Coluna "situação" (Publicada / Rascunho) para modelos com o campo booleano `publicada`."""
+
+    @admin.display(description="situação", ordering="publicada")
+    def situacao_publicacao(self, obj):
+        return selo_publicacao(obj.publicada)

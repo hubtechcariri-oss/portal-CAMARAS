@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.camaras.admin_mixins import AdminDaCamara
+from apps.camaras.admin_mixins import AdminDaCamara, selo_publicacao
 
 from .models import CategoriaTransparencia, Documento, GrupoTransparencia
 
@@ -33,8 +33,12 @@ class CategoriaAdmin(SoPlataforma, admin.ModelAdmin):
 
 @admin.register(Documento)
 class DocumentoAdmin(AdminDaCamara):
-    list_display = ["titulo", "categoria", "data", "competencia", "publicado"]
+    list_display = ["titulo", "categoria", "data", "competencia", "situacao"]
     list_filter = ["categoria__grupo", "categoria", "publicado"]
     search_fields = ["titulo", "numero", "descricao"]
     date_hierarchy = "data"
     autocomplete_fields = ["categoria"]
+
+    @admin.display(description="situação", ordering="publicado")
+    def situacao(self, obj):
+        return selo_publicacao(obj.publicado)

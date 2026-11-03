@@ -68,7 +68,51 @@ html[data-theme="dark"] {
   --painel-cartao: #1e1f22;
 }
 
-body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+/* ---------------------------------------------------------------------------
+   Tokens de design (auditoria UI/UX de 03/11/2026)
+   Contrastes conferidos: texto >= 4,5:1; bordas de campo e ícones >= 3:1.
+   --------------------------------------------------------------------------- */
+:root {
+  --texto-titulo: #0f2a44;
+  --texto-apoio: #4b5563;
+  --cartao-borda: #e3e7ed;
+  --campo-borda: #8a94a6;          /* 3,06:1 sobre o fundo branco do campo */
+  --campo-fundo: #ffffff;
+  --estado-ok-fundo: #e3f2ea;       --estado-ok-texto: #1f6b44;
+  --estado-atencao-fundo: #fff3d6;  --estado-atencao-texto: #7a4f00;
+  --estado-critico: #b42318;        --estado-critico-fundo: #fde7e5;
+  --estado-neutro-fundo: #eef1f5;   --estado-neutro-texto: #374151;
+  --foco-cor: #0b4f8a;              /* sobre fundo claro */
+  --foco-cor-escuro-fundo: var(--painel-destaque, #e0a526); /* sobre azul */
+  --foco-anel: 3px;
+  --fonte: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-titulo: 28px; --fs-cartao: 17px; --fs-corpo: 15px; --fs-apoio: 13px; --fs-indicador: 40px;
+  --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 20px; --esp-6: 24px; --esp-8: 32px;
+  --raio-cartao: 12px; --raio-campo: 8px; --raio-selo: 999px;
+  --alvo-minimo: 44px;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --texto-titulo: #e6edf5; --texto-apoio: #a8b3c2; --cartao-borda: #33373d;
+    --campo-borda: #8a94a6; --campo-fundo: #1e1f22;
+    --estado-ok-fundo: #133524;      --estado-ok-texto: #8fd6ad;
+    --estado-atencao-fundo: #3a2c08; --estado-atencao-texto: #f5c66b;
+    --estado-critico: #ff8a80;       --estado-critico-fundo: #3b1512;
+    --estado-neutro-fundo: #2a2f36;  --estado-neutro-texto: #d1d5db;
+    --foco-cor: #e0a526;
+  }
+}
+html[data-theme="dark"] {
+  --texto-titulo: #e6edf5; --texto-apoio: #a8b3c2; --cartao-borda: #33373d;
+  --campo-borda: #8a94a6; --campo-fundo: #1e1f22;
+  --estado-ok-fundo: #133524;      --estado-ok-texto: #8fd6ad;
+  --estado-atencao-fundo: #3a2c08; --estado-atencao-texto: #f5c66b;
+  --estado-critico: #ff8a80;       --estado-critico-fundo: #3b1512;
+  --estado-neutro-fundo: #2a2f36;  --estado-neutro-texto: #d1d5db;
+  --foco-cor: #e0a526;
+}
+
+body { font-family: var(--fonte); }
 
 /* Cabeçalho com brasão */
 #header { padding: 10px 32px; border-bottom: 3px solid var(--painel-destaque); align-items: center; }
@@ -124,3 +168,48 @@ div.breadcrumbs { padding: 10px 32px; }
   div.breadcrumbs { padding: 10px 16px; }
   .painel-marca__brasao { width: 36px; height: 36px; }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Tipografia, foco e campos (tarefa 1)
+   --------------------------------------------------------------------------- */
+#content { font-size: var(--fs-corpo); }
+#content h1 { font-size: var(--fs-titulo); font-weight: 600; line-height: 1.2; color: var(--texto-titulo); margin-bottom: var(--esp-5); }
+#content h2.subhead, #content-main > h2 { color: var(--texto-titulo); font-weight: 600; }
+.help, .help p, div.help, .meta, .timezonewarning { color: var(--texto-apoio); font-size: var(--fs-apoio); }
+
+/* Foco sempre visível por teclado: anel de 3 px, com cor de destaque sobre o azul. */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+summary:focus-visible, [tabindex]:focus-visible, .button:focus-visible {
+  outline: var(--foco-anel) solid var(--foco-cor) !important;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+#header a:focus-visible, #header button:focus-visible, .module h2 a:focus-visible, .module caption a:focus-visible,
+#nav-sidebar caption a:focus-visible, .submit-row input:focus-visible, .button.default:focus-visible {
+  outline-color: var(--foco-cor-escuro-fundo) !important;
+}
+
+/* Campos: borda com contraste >= 3:1, cantos de 8 px e altura mínima de toque. */
+.form-row input[type=text], .form-row input[type=email], .form-row input[type=url], .form-row input[type=number],
+.form-row input[type=password], .form-row input[type=search], .form-row input[type=tel], .form-row select,
+.form-row textarea, .vDateField, .vTimeField, #searchbar, #changelist-search input[type=text] {
+  border: 1px solid var(--campo-borda);
+  border-radius: var(--raio-campo);
+  background-color: var(--campo-fundo);
+  font-size: var(--fs-corpo);
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+.form-row input[type=text], .form-row input[type=email], .form-row input[type=url], .form-row input[type=number],
+.form-row input[type=password], .form-row input[type=search], .form-row input[type=tel], .form-row select,
+.vDateField, .vTimeField, #searchbar { min-height: var(--alvo-minimo); }
+.form-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); }
+.form-row input:hover, .form-row select:hover, .form-row textarea:hover { border-color: var(--texto-apoio); }
+.button, input[type=submit], input[type=button], .submit-row input, a.button, .submit-row a.deletelink {
+  min-height: var(--alvo-minimo); border-radius: var(--raio-campo); font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.submit-row a.deletelink { height: auto; }
+.module, fieldset.module, #changelist .results, .painel-fila, .painel-atalhos a { border-color: var(--cartao-borda); }
+.module, .submit-row, #changelist-filter, .painel-fila, .painel-atalhos a { border-radius: var(--raio-cartao); }

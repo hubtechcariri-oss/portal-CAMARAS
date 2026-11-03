@@ -188,3 +188,33 @@ class Command(BaseCommand):
                 m = Manifestacao.objects.create(camara=camara, tipo=tipo, assunto=assunto,
                                                 descricao="Manifestação de exemplo.", anonima=True)
                 Manifestacao.objects.filter(pk=m.pk).update(prazo=hoje + timedelta(days=dias_restantes))
+        self.garantir_historico_atendimento(camara)
+
+    def garantir_historico_atendimento(self, camara):
+        """Pedidos e manifestações já respondidos nos últimos meses, para o dashboard ter histórico."""
+        import random
+
+        from apps.esic.models import Pedido
+        from apps.ouvidoria.models import Manifestacao
+
+        sorteio = random.Random(camara.pk)  # sempre os mesmos números para a mesma câmara
+        agora = timezone.now()
+        filas = [
+            (Pedido, "respondido_em", Pedido.Situacao.RESPONDIDO, 20,
+             lambda: {"nome": "Cidadão de exemplo", "email": "cidadao@exemplo.com",
+                      "pedido": "Pedido de exemplo já respondido."}),
+            (Manifestacao, "respondida_em", Manifestacao.Situacao.RESPONDIDA, 30,
+             lambda: {"tipo": "solicitacao", "assunto": "Manifestação de exemplo já respondida",
+                      "descricao": "Manifestação de exemplo.", "anonima": True}),
+        ]
+        for modelo, campo, respondida, prazo_dias, dados in filas:
+            if modelo.objects.da_camara(camara).filter(**{f"{campo}__isnull": False}).exists():
+                continue
+            for meses_atras in range(11, 0, -1):
+                for _ in range(sorteio.randint(1, 5)):
+                    criado = agora - timedelta(days=meses_atras * 30 + sorteio.randint(0, 25))
+                    demora = sorteio.choice([3, 5, 8, 10, 12, 15, 18, prazo_dias + 4])  # às vezes atrasa
+                    obj = modelo.objects.create(camara=camara, **dados())
+                    modelo.objects.filter(pk=obj.pk).update(
+                        criado_em=criado, prazo=(criado + timedelta(days=prazo_dias)).date(),
+                        situacao=respondida, **{campo: criado + timedelta(days=demora)})

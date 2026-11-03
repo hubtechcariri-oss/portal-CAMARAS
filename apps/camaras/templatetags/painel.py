@@ -316,3 +316,17 @@ def painel_menu(context):
                            "atual": any(l["atual"] for l in linhas)})
     inicio_url = reverse("admin:index")
     return {"inicio": {"url": inicio_url, "atual": caminho == inicio_url}, "grupos": grupos}
+
+
+# ---------------------------------------------------------------------------
+# Dashboard do Início: indicadores do ano (apps/camaras/indicadores.py).
+# ---------------------------------------------------------------------------
+
+@register.simple_tag(takes_context=True)
+def painel_dashboard(context):
+    from apps.camaras import indicadores
+
+    usuario = context["request"].user
+    return {
+        "atendimento": indicadores.atendimento(usuario),
+    }

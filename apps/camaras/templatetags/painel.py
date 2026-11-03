@@ -329,4 +329,5 @@ def painel_dashboard(context):
     usuario = context["request"].user
     return {
         "atendimento": indicadores.atendimento(usuario),
+        "transparencia": indicadores.transparencia(usuario, painel_camara(context)),
     }

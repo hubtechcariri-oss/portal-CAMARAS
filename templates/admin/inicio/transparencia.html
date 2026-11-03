@@ -1,0 +1,47 @@
+{# Dashboard 2: itens obrigatórios do catálogo de transparência (matriz PNTP) publicados nos últimos 12 meses. #}
+<section class="cartao painel-secao" aria-labelledby="t-transparencia">
+  <h2 id="t-transparencia" class="cartao__titulo">Transparência <span class="cartao__periodo">itens obrigatórios (PNTP)</span></h2>
+  <div class="painel-secao__grade">
+    <article class="metricas">
+      <header class="metricas__topo">
+        <h3><a href="{{ t.url_lista }}">Itens publicados e em dia</a></h3>
+        <span class="selo selo--{{ t.estado }}">{{ t.rotulo_estado }}</span>
+      </header>
+      <dl class="metricas__numeros">
+        <div class="metricas__destaque">
+          <dt>Atendidos</dt>
+          <dd>{{ t.percentual }}%<span>{{ t.publicados }} de {{ t.total }} ite{{ t.total|pluralize:"m,ns" }} com publicação nos últimos 12 meses</span></dd>
+        </div>
+      </dl>
+      <div class="progresso" role="img" aria-label="{{ t.publicados }} de {{ t.total }} itens em dia">
+        <span class="progresso__parte progresso__parte--ok" style="width: {% widthratio t.publicados t.total 100 %}%"></span>
+        <span class="progresso__parte progresso__parte--atencao" style="width: {% widthratio t.desatualizados t.total 100 %}%"></span>
+      </div>
+      <ul class="progresso__legenda">
+        <li><span class="progresso__marca progresso__marca--ok" aria-hidden="true"></span>Em dia: {{ t.publicados }}</li>
+        <li><span class="progresso__marca progresso__marca--atencao" aria-hidden="true"></span>Desatualizados: {{ t.desatualizados }}</li>
+        <li><span class="progresso__marca" aria-hidden="true"></span>Sem publicação: {{ t.sem_publicacao }}</li>
+      </ul>
+      <p class="metricas__nota">Estimativa para orientar a equipe. A avaliação oficial do PNTP usa critérios e pesos próprios.
+        {% if t.catalogo_inteiro %}Nenhuma categoria está marcada como obrigatória, então o cálculo usa o catálogo inteiro.
+        {% endif %}{% if t.url_catalogo %}<a href="{{ t.url_catalogo }}">{% if t.catalogo_inteiro %}Marcar as obrigatórias{% else %}Revisar quais itens são obrigatórios{% endif %}</a>.{% endif %}</p>
+    </article>
+
+    <article class="metricas">
+      <header class="metricas__topo"><h3>O que falta publicar</h3></header>
+      {% if t.pendencias %}
+      <ul class="lista-linhas">
+        {% for p in t.pendencias %}
+        <li>{% if p.url %}<a href="{{ p.url }}">{% else %}<span class="lista-linhas__linha">{% endif %}
+          <span class="lista-linhas__texto"><strong>{{ p.nome }}</strong><span class="lista-linhas__apoio">{{ p.grupo }}{% if p.base_legal %} · {{ p.base_legal }}{% endif %}</span></span>
+          <span class="selo selo--{{ p.estado }}">{{ p.situacao }}</span>
+        {% if p.url %}</a>{% else %}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% if t.mais_pendencias %}<p class="metricas__nota"><a href="{{ t.url_lista }}">e mais {{ t.mais_pendencias }} ite{{ t.mais_pendencias|pluralize:"m,ns" }}</a></p>{% endif %}
+      {% else %}
+      <p class="cartao__vazio">Todos os itens obrigatórios têm publicação nos últimos 12 meses.</p>
+      {% endif %}
+    </article>
+  </div>
+</section>

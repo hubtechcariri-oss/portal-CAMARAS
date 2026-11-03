@@ -78,6 +78,7 @@ class Command(BaseCommand):
                 Dominio.objects.get_or_create(host=h, defaults={"camara": existente.camara})
             self.garantir_visual(existente.camara)
             self.garantir_atendimento(existente.camara)
+            self.garantir_transparencia(existente.camara)
             self.stdout.write(f"A câmara de demonstração já existe ({', '.join(hosts)}). Visual conferido.")
             return
         host = hosts[0]
@@ -126,6 +127,7 @@ class Command(BaseCommand):
                                  link_externo="https://exemplo.com/despesas")
         self.garantir_visual(camara)
         self.garantir_atendimento(camara)
+        self.garantir_transparencia(camara)
         self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em: {', '.join(hosts)}"))
 
     def garantir_visual(self, camara):
@@ -218,3 +220,27 @@ class Command(BaseCommand):
                     modelo.objects.filter(pk=obj.pk).update(
                         criado_em=criado, prazo=(criado + timedelta(days=prazo_dias)).date(),
                         situacao=respondida, **{campo: criado + timedelta(days=demora)})
+
+    def garantir_transparencia(self, camara):
+        """Publicações de exemplo para o bloco de transparência do Início ter itens em dia e pendentes.
+
+        Se ninguém marcou as categorias obrigatórias, marca as que têm base legal no catálogo
+        (só para a demonstração; em produção quem marca é a equipe, conforme a matriz PNTP).
+        """
+        if not CategoriaTransparencia.objects.filter(obrigatoria=True).exists():
+            CategoriaTransparencia.objects.exclude(base_legal="").update(obrigatoria=True)
+        hoje = timezone.localdate()
+        exemplos = [
+            ("carta-de-servicos-ao-usuario", "Carta de Serviços ao Usuário 2026", 120),
+            ("receitas", "Receitas: consulta no sistema contábil", 20),
+            ("relatorio-de-gestao-fiscal-rgf", "RGF do 2º quadrimestre de 2026", 40),
+            ("contratos", "Contrato nº 12/2026: manutenção predial", 60),
+            ("licitacoes", "Pregão eletrônico nº 3/2026", 90),
+            ("quadro-de-pessoal-e-remuneracao", "Folha de pagamento de setembro de 2026", 35),
+            ("estrutura-organizacional-e-competencias", "Organograma e competências", 500),  # desatualizado
+        ]
+        for slug, titulo, dias in exemplos:
+            categoria = CategoriaTransparencia.objects.filter(slug=slug).first()
+            if categoria and not Documento.objects.da_camara(camara).filter(categoria=categoria).exists():
+                Documento.objects.create(camara=camara, categoria=categoria, titulo=titulo,
+                                         data=hoje - timedelta(days=dias), descricao="Documento de exemplo.")

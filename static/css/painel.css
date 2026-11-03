@@ -391,6 +391,17 @@ html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { 
   pointer-events: none; opacity: 0; transition: opacity .1s; }
 .grafico__mes:hover .grafico__dica { opacity: 1; }
 .grafico__mes:hover .grafico__valor { opacity: 0; }
+.metricas__nota { font-size: var(--fs-apoio); color: var(--texto-apoio); margin: var(--esp-3) 0 0; line-height: 1.45; }
+.progresso { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: var(--estado-neutro-fundo); }
+.progresso__parte { display: block; height: 100%; }
+.progresso__parte--ok { background: var(--estado-ok-texto); }
+.progresso__parte--atencao { background: var(--estado-atencao-texto); }
+.progresso__legenda { display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-4); list-style: none; margin: var(--esp-2) 0 0; padding: 0; font-size: var(--fs-apoio); color: var(--texto-apoio); }
+.progresso__legenda li { display: flex; align-items: center; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.progresso__marca { width: 10px; height: 10px; border-radius: 3px; background: var(--estado-neutro-fundo); border: 1px solid var(--campo-borda); }
+.progresso__marca--ok { background: var(--estado-ok-texto); border-color: var(--estado-ok-texto); }
+.progresso__marca--atencao { background: var(--estado-atencao-texto); border-color: var(--estado-atencao-texto); }
+.lista-linhas__linha { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); min-height: var(--alvo-minimo); padding: var(--esp-2) 0; }
 @media (max-width: 560px) {
   .metricas__numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grafico__mes:nth-child(odd) .grafico__rotulo { visibility: hidden; }

@@ -87,3 +87,66 @@ class AtendimentoTests(TestCase):
         (fila,) = indicadores.atendimento(self.u)
         self.assertIsNone(fila["percentual_no_prazo"])
         self.assertEqual(fila["rotulo_estado"], "Sem respostas")
+
+
+class TransparenciaTests(TestCase):
+    def setUp(self):
+        from apps.transparencia.models import CategoriaTransparencia, Documento
+
+        self.a = criar_camara("camara-a.test", "Câmara Municipal A")
+        self.b = criar_camara("camara-b.test", "Câmara Municipal B")
+        CategoriaTransparencia.objects.update(obrigatoria=False)
+        self.rgf, self.contratos, self.diarias, self.receitas = [
+            CategoriaTransparencia.objects.get(slug=s)
+            for s in ["relatorio-de-gestao-fiscal-rgf", "contratos", "diarias", "receitas"]
+        ]
+        CategoriaTransparencia.objects.filter(pk__in=[self.rgf.pk, self.contratos.pk, self.diarias.pk, self.receitas.pk]).update(obrigatoria=True)
+        hoje = timezone.localdate()
+        Documento.objects.create(camara=self.a, categoria=self.rgf, titulo="RGF", data=hoje, descricao="x")
+        Documento.objects.create(camara=self.a, categoria=self.contratos, titulo="Antigo", data=hoje - timedelta(days=500), descricao="x")
+        Documento.objects.create(camara=self.a, categoria=self.receitas, titulo="Rascunho", data=hoje, descricao="x", publicado=False)
+        Documento.objects.create(camara=self.b, categoria=self.diarias, titulo="Outra câmara", data=hoje, descricao="x")
+        self.u = User.objects.create_user("transp", password="x", is_staff=True)
+        self.u.user_permissions.add(*Permission.objects.filter(content_type__app_label="transparencia",
+                                                               codename__in=["view_documento", "add_documento"]))
+        Membro.objects.create(usuario=self.u, camara=self.a)
+
+    def test_conta_so_obrigatorias_publicadas_e_recentes_da_camara(self):
+        t = indicadores.transparencia(self.u, self.a)
+        self.assertEqual((t["total"], t["publicados"], t["desatualizados"], t["sem_publicacao"]), (4, 1, 1, 2))
+        self.assertEqual(t["percentual"], 25)
+        self.assertEqual(t["estado"], "critico")
+        nomes = [p["nome"] for p in t["pendencias"]]
+        self.assertNotIn(self.rgf.nome, nomes)
+        self.assertEqual(t["pendencias"][-1]["nome"], self.contratos.nome)  # desatualizado depois dos sem publicação
+        self.assertTrue(t["pendencias"][0]["url"].endswith(f"?categoria={t_pk(t, self)}"))
+        self.assertFalse(t["catalogo_inteiro"])
+
+    def test_sem_obrigatorias_usa_catalogo_inteiro(self):
+        from apps.transparencia.models import CategoriaTransparencia
+
+        CategoriaTransparencia.objects.update(obrigatoria=False)
+        t = indicadores.transparencia(self.u, self.a)
+        self.assertTrue(t["catalogo_inteiro"])
+        self.assertEqual(t["total"], CategoriaTransparencia.objects.count())
+
+    def test_nao_mostra_camara_alheia_nem_sem_permissao(self):
+        self.assertIsNone(indicadores.transparencia(self.u, self.b))
+        u = User.objects.create_user("semperm", password="x", is_staff=True)
+        Membro.objects.create(usuario=u, camara=self.a)
+        self.assertIsNone(indicadores.transparencia(u, self.a))
+
+    def test_bloco_no_inicio(self):
+        self.client.force_login(self.u)
+        r = self.client.get("/admin/", HTTP_HOST="camara-a.test")
+        self.assertContains(r, "itens obrigatórios (PNTP)")
+        self.assertContains(r, "1 de 4 itens com publicação")
+        self.assertContains(r, "nada publicado")
+        self.assertContains(r, "A avaliação oficial do PNTP")
+
+
+def t_pk(t, caso):
+    """Id da primeira pendência (ordem: sem publicação, por grupo e nome)."""
+    from apps.transparencia.models import CategoriaTransparencia
+
+    return CategoriaTransparencia.objects.get(nome=t["pendencias"][0]["nome"]).pk

@@ -105,3 +105,80 @@ def atendimento(usuario):
         filas.append(_fila_atendimento(Manifestacao, usuario, "respondida_em", "Ouvidoria (manifestações)",
                                        "admin:ouvidoria_manifestacao_changelist"))
     return filas or None
+
+
+# ---------------------------------------------------------------------------
+# 2. Transparência: itens obrigatórios do catálogo (PNTP) com publicação recente
+# ---------------------------------------------------------------------------
+
+MESES_ATUALIZADO = 12  # publicação mais antiga que isso conta como desatualizada
+LIMITE_PENDENCIAS = 8
+
+
+def transparencia(usuario, camara):
+    """Quantos itens obrigatórios do catálogo a câmara publicou nos últimos 12 meses.
+
+    É uma estimativa para orientar a equipe: a nota oficial do PNTP usa critérios
+    próprios (e pesos). Se nenhuma categoria estiver marcada como obrigatória,
+    considera o catálogo inteiro e avisa.
+    """
+    from django.db.models import Max, Q
+    from django.urls import reverse
+
+    from apps.transparencia.models import CategoriaTransparencia, Documento
+
+    if camara is None or not _pode_ver(usuario, Documento):
+        return None
+    if not usuario.is_superuser and not camaras_do_usuario(usuario).filter(pk=camara.pk).exists():
+        return None
+
+    categorias = CategoriaTransparencia.objects.filter(obrigatoria=True)
+    catalogo_inteiro = not categorias.exists()
+    if catalogo_inteiro:
+        categorias = CategoriaTransparencia.objects.all()
+    categorias = categorias.select_related("grupo").annotate(
+        ultima=Max("documentos__data", filter=Q(documentos__camara=camara, documentos__publicado=True))
+    )
+
+    hoje = timezone.localdate()
+    limite = _inicio_da_serie(hoje, MESES_ATUALIZADO + 1)
+    pode_publicar = usuario.has_perm("transparencia.add_documento")
+    url_novo = reverse("admin:transparencia_documento_add")
+
+    publicados, pendencias = 0, []
+    for c in categorias:
+        if c.ultima and c.ultima >= limite:
+            publicados += 1
+            continue
+        pendencias.append({
+            "nome": c.nome, "grupo": c.grupo.nome, "base_legal": c.base_legal,
+            "estado": "atencao" if c.ultima else "critico",
+            "situacao": f"última em {c.ultima:%m/%Y}" if c.ultima else "nada publicado",
+            "url": f"{url_novo}?categoria={c.pk}" if pode_publicar else None,
+        })
+
+    total = len(categorias)
+    pct = _percentual(publicados, total) or 0
+    if pct >= 85:
+        estado, rotulo_estado = "ok", "Bom"
+    elif pct >= 50:
+        estado, rotulo_estado = "atencao", "Atenção"
+    else:
+        estado, rotulo_estado = "critico", "Crítico"
+    pendencias.sort(key=lambda p: (p["estado"] != "critico", p["grupo"], p["nome"]))
+
+    return {
+        "total": total,
+        "publicados": publicados,
+        "desatualizados": sum(1 for p in pendencias if p["estado"] == "atencao"),
+        "sem_publicacao": sum(1 for p in pendencias if p["estado"] == "critico"),
+        "percentual": pct,
+        "estado": estado,
+        "rotulo_estado": rotulo_estado,
+        "pendencias": pendencias[:LIMITE_PENDENCIAS],
+        "mais_pendencias": max(len(pendencias) - LIMITE_PENDENCIAS, 0),
+        "catalogo_inteiro": catalogo_inteiro,
+        "url_lista": reverse("admin:transparencia_documento_changelist"),
+        "url_catalogo": (reverse("admin:transparencia_categoriatransparencia_changelist")
+                         if usuario.has_perm("transparencia.change_categoriatransparencia") else None),
+    }

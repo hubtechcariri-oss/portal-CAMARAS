@@ -3,7 +3,7 @@
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Painel{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/painel.css' %}?v=7">
+<link rel="stylesheet" href="{% static 'css/painel.css' %}?v=11">
 {% painel_camara as cam %}
 {% if cam %}<style>
   :root, html[data-theme="light"], html[data-theme="dark"] {

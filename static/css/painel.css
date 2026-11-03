@@ -235,3 +235,47 @@ summary:focus-visible, [tabindex]:focus-visible, .button:focus-visible {
 }
 .marca-obrigatorio { color: var(--estado-critico); font-weight: 700; }
 .legenda-obrigatorio { margin: 0 0 var(--esp-3); color: var(--texto-apoio); font-size: var(--fs-apoio); }
+
+/* ---------------------------------------------------------------------------
+   Formulário em duas colunas (tarefa 5): conteúdo + cartão "Publicação".
+   --------------------------------------------------------------------------- */
+.form-duas-colunas { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--esp-6); align-items: start; }
+.form-duas-colunas > * { min-width: 0; box-sizing: border-box; }
+.form-duas-colunas__lateral input, .form-duas-colunas__lateral select, .form-duas-colunas__lateral .help { max-width: 100%; box-sizing: border-box; }
+.form-duas-colunas__lateral { position: sticky; top: var(--esp-4); display: flex; flex-direction: column; gap: var(--esp-3);
+  background: var(--painel-cartao); border: 1px solid var(--cartao-borda); border-radius: var(--raio-cartao); padding: var(--esp-4); }
+.form-duas-colunas__lateral fieldset.module { border: 0; margin: 0; padding: 0; background: transparent; box-shadow: none; }
+.form-duas-colunas__lateral .fieldset-heading, .form-duas-colunas__lateral fieldset h2 {
+  background: transparent; color: var(--texto-titulo); font-size: var(--fs-cartao); font-weight: 700; text-transform: none;
+  letter-spacing: 0; padding: 0 0 var(--esp-2); margin: 0; border: 0; border-bottom: 1px solid var(--cartao-borda); border-radius: 0; }
+/* No cartão estreito, rótulo em cima do campo. */
+.form-duas-colunas__lateral .form-row { padding: var(--esp-3) 0; border-bottom: 1px solid var(--cartao-borda); }
+.form-duas-colunas__lateral .aligned .flex-container { flex-direction: column; align-items: stretch; gap: var(--esp-1); }
+.form-duas-colunas__lateral .aligned label { width: auto; padding: 0; float: none; }
+.form-duas-colunas__lateral .aligned .help, .form-duas-colunas__lateral .aligned div.help { margin-left: 0; padding-left: 0; }
+.form-duas-colunas__lateral input[type=text], .form-duas-colunas__lateral select { width: 100%; }
+.form-duas-colunas__lateral .datetime input { width: auto; }
+.form-duas-colunas__lateral ul.radiolist, .form-duas-colunas__lateral #id_publicada { display: flex; gap: var(--esp-4); margin: 0; padding: 0; }
+.form-duas-colunas__lateral #id_publicada li { list-style: none; }
+.form-duas-colunas__lateral #id_publicada label { display: inline-flex; align-items: center; gap: var(--esp-2); min-height: var(--alvo-minimo); font-weight: 600; }
+.form-duas-colunas__lateral #id_publicada input { width: 18px; height: 18px; accent-color: var(--primary); }
+.form-duas-colunas__lateral .submit-row { display: flex; flex-direction: column; align-items: stretch; gap: var(--esp-2); margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.form-duas-colunas__lateral .submit-row input, .form-duas-colunas__lateral .submit-row a { width: 100%; margin: 0; }
+.form-duas-colunas__lateral .submit-row input.default { order: -1; }
+.form-duas-colunas__lateral .submit-row .deletelink-box { margin: var(--esp-2) 0 0; }
+.form-duas-colunas__link { margin: 0; font-weight: 600; }
+.previa-slug { font-size: var(--fs-apoio); word-break: break-all; background: var(--estado-neutro-fundo); color: var(--estado-neutro-texto); padding: 2px 6px; border-radius: 4px; }
+.campo-largo, .form-duas-colunas__principal textarea { width: 100% !important; max-width: 100%; box-sizing: border-box; }
+.form-duas-colunas__principal .aligned .flex-container > .campo-largo,
+.form-duas-colunas__principal .aligned .flex-container > textarea { flex: 1; }
+.submit-row .deletelink-box { display: flex; align-items: center; }
+.submit-row a.deletelink { min-height: var(--alvo-minimo); box-sizing: border-box; }
+.contador { font-size: var(--fs-apoio); color: var(--texto-apoio); margin-top: var(--esp-1); }
+.contador--perto { color: var(--estado-atencao-texto); font-weight: 700; }
+
+@media (max-width: 1100px) {
+  .form-duas-colunas { grid-template-columns: minmax(0, 1fr); }
+  .form-duas-colunas__lateral { position: static; }
+}
+/* O CSS responsivo do Django fixa a largura em 100vw; no cartão isso estoura a tela. */
+.form-duas-colunas .aligned .form-row > div { width: auto; max-width: 100%; }

@@ -48,6 +48,13 @@ class AdminDaCamara(RestringeRelacoesMixin, admin.ModelAdmin):
         camaras = list(camaras_do_usuario(request.user)[:2])
         return camaras[0] if len(camaras) == 1 and not request.user.is_superuser else None
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if not self.fieldsets or not self._camara_unica(request):
+            return fieldsets
+        return [(nome, {**opcoes, "fields": [f for f in opcoes["fields"] if f != "camara"]})
+                for nome, opcoes in fieldsets]
+
     def get_exclude(self, request, obj=None):
         excluidos = list(super().get_exclude(request, obj) or [])
         if self._camara_unica(request):

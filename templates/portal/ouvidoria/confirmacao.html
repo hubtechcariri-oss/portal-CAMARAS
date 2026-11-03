@@ -1,0 +1,12 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Manifestação registrada · {% endblock %}
+{% block conteudo %}
+<h1>Manifestação registrada</h1>
+<div class="aviso" role="status">
+  <p>Tipo: <strong>{{ manifestacao.get_tipo_display }}</strong></p>
+  <p>Protocolo: <strong>{{ manifestacao.protocolo }}</strong></p>
+  <p>Código de consulta: <strong>{{ manifestacao.codigo_consulta }}</strong></p>
+  <p>Prazo para resposta: <strong>{{ manifestacao.prazo|date:"d/m/Y" }}</strong></p>
+</div>
+<p>Anote o protocolo e o código: os dois são necessários para <a href="{% url 'ouvidoria:consulta' %}">acompanhar a manifestação</a>{% if manifestacao.anonima %}, já que ela é anônima{% endif %}.</p>
+{% endblock %}

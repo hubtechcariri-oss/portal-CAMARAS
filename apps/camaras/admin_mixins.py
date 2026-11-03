@@ -130,6 +130,21 @@ def texto_do_prazo(dias):
     return f"vence em {dias} dias"
 
 
+def selo_do_prazo(obj):
+    """Selo em texto para um pedido/manifestação: Encerrado, Vencido há N dias, Vence em N dias, No prazo."""
+    from django.utils import timezone
+    from django.utils.html import format_html
+
+    if obj.situacao not in obj.ABERTAS:
+        return format_html('<span class="selo selo--ok">{}</span>', "Encerrado")
+    dias = (obj.prazo - timezone.localdate()).days
+    if dias < 0:
+        return format_html('<span class="selo selo--critico">Vencido há {} dia{}</span>', -dias, "s" if dias < -1 else "")
+    if dias <= ALERTA_DIAS:
+        return format_html('<span class="selo selo--atencao">{}</span>', texto_do_prazo(dias).capitalize())
+    return format_html('<span class="selo selo--neutro">{}</span>', "No prazo")
+
+
 class FilaDeAtendimentoMixin:
     """Filas do e-SIC e da Ouvidoria.
 
@@ -139,17 +154,7 @@ class FilaDeAtendimentoMixin:
 
     @admin.display(description="situação do prazo", ordering="prazo")
     def selo_prazo(self, obj):
-        from django.utils import timezone
-        from django.utils.html import format_html
-
-        if obj.situacao not in obj.ABERTAS:
-            return format_html('<span class="selo selo--ok">{}</span>', "Encerrado")
-        dias = (obj.prazo - timezone.localdate()).days
-        if dias < 0:
-            return format_html('<span class="selo selo--critico">Vencido há {} dia{}</span>', -dias, "s" if dias < -1 else "")
-        if dias <= ALERTA_DIAS:
-            return format_html('<span class="selo selo--atencao">{}</span>', texto_do_prazo(dias).capitalize())
-        return format_html('<span class="selo selo--neutro">{}</span>', "No prazo")
+        return selo_do_prazo(obj)
 
     def get_ordering(self, request):
         if request.GET.get(PrazoFilter.parameter_name) in ("abertas", "vencidas"):
@@ -214,3 +219,25 @@ class ColunaPublicacaoMixin:
     @admin.display(description="situação", ordering="publicada")
     def situacao_publicacao(self, obj):
         return selo_publicacao(obj.publicada)
+
+
+class UltimosDiasFilter(admin.SimpleListFilter):
+    """Publicadas nos últimos 30 dias (mesmo critério do indicador do Início)."""
+
+    title = "período"
+    parameter_name = "ultimos_dias"
+    DIAS = 30
+
+    def lookups(self, request, model_admin):
+        return [(str(self.DIAS), f"Últimos {self.DIAS} dias")]
+
+    def queryset(self, request, queryset):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        if self.value() != str(self.DIAS):
+            return queryset
+        agora = timezone.now()
+        return queryset.filter(publicada=True, publicada_em__gt=agora - timedelta(days=self.DIAS),
+                               publicada_em__lte=agora)

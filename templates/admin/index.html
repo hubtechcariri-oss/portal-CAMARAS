@@ -1,51 +1,120 @@
 {% extends "admin/index.html" %}
 {% load painel %}
+{# Início: indicadores, prazos, publicações recentes, atalhos e atividade da equipe — tudo vindo do banco. #}
+
+{% block coltype %}colM{% endblock %}
 
 {% block content %}
-{% painel_resumo as resumo %}
-<div class="painel-inicio">
-  <p class="painel-saudacao">Olá, {{ user.get_short_name|default:user.get_username }}. O que você quer fazer hoje?</p>
+{% painel_inicio as inicio %}
+<div id="content-main" class="inicio">
+  <p class="painel-saudacao">Olá, {{ user.get_short_name|default:user.get_username }}. Veja o que pede atenção hoje.</p>
 
-  {% if resumo.filas %}
-  <section class="painel-bloco" aria-labelledby="t-pendencias">
-    <h2 id="t-pendencias" class="painel-titulo">Atendimento ao cidadão</h2>
-    <div class="painel-filas">
-      {% for f in resumo.filas %}
-      <a class="painel-fila painel-fila--{{ f.estado }}" href="{{ f.url }}"
-         aria-label="{{ f.rotulo }}: {{ f.abertas }} em aberto. Situação: {{ f.rotulo_estado }}. Abrir a lista ordenada por prazo.">
-        <span class="painel-fila__rotulo">{{ f.rotulo }}</span>
-        <span class="painel-fila__numero">{{ f.abertas }}</span>
-        <span class="painel-fila__detalhe">
-          <span class="selo selo--{{ f.estado }}">{{ f.rotulo_estado }}</span>
-          <span class="painel-fila__itens">
-          {% if f.abertas %}
-            <span class="painel-fila__item">{{ f.abertas }} em aberto</span>
-            {% if f.vencidas %}<strong class="painel-fila__item">{{ f.vencidas }} com prazo vencido</strong>{% endif %}
-            {% if f.proximo %}<span class="painel-fila__item">próximo {{ f.proximo }}</span>{% endif %}
-          {% else %}
-            <span class="painel-fila__item">nada aguardando resposta</span>
-          {% endif %}
+  {% if inicio.indicadores %}
+  <section class="painel-bloco" aria-labelledby="t-indicadores">
+    <h2 id="t-indicadores" class="visually-hidden">Indicadores</h2>
+    <ul class="indicadores">
+      {% for i in inicio.indicadores %}
+      <li>
+        <a class="indicador indicador--{{ i.estado }}" href="{{ i.url }}">
+          <span class="indicador__topo">
+            {% include "portal/icones/"|add:i.icone|add:".svg" %}
+            <span class="indicador__rotulo">{{ i.rotulo }}</span>
+            {% if i.rotulo_estado %}<span class="selo selo--{{ i.estado }}">{{ i.rotulo_estado }}</span>{% endif %}
           </span>
-        </span>
-      </a>
+          <span class="indicador__numero">{{ i.numero }}</span>
+          <span class="indicador__unidade">{{ i.unidade }}</span>
+          <span class="indicador__detalhe">{{ i.detalhe }}</span>
+        </a>
+      </li>
       {% endfor %}
-    </div>
-  </section>
-  {% endif %}
-
-  {% if resumo.atalhos %}
-  <section class="painel-bloco" aria-labelledby="t-atalhos">
-    <h2 id="t-atalhos" class="painel-titulo">Atalhos</h2>
-    <ul class="painel-atalhos">
-      {% for a in resumo.atalhos %}
-      <li><a href="{{ a.url }}">{% include "portal/icones/"|add:a.icone|add:".svg" %}<span>{{ a.rotulo }}</span></a></li>
-      {% endfor %}
-      <li><a href="/" target="_blank" rel="noopener">{% include "portal/icones/info.svg" %}<span>Ver o portal</span></a></li>
     </ul>
   </section>
   {% endif %}
 
-  <h2 class="painel-titulo">Todas as áreas</h2>
+  <div class="inicio__colunas">
+    <div class="inicio__coluna">
+      {% if inicio.prazos is not None %}
+      <section class="cartao" aria-labelledby="t-prazos">
+        <h2 id="t-prazos" class="cartao__titulo">Prazos e pendências</h2>
+        {% if inicio.prazos %}
+        <ul class="lista-linhas">
+          {% for p in inicio.prazos %}
+          <li><a href="{{ p.url }}">
+            <span class="lista-linhas__texto"><strong>{{ p.titulo }}</strong><span class="lista-linhas__apoio">{{ p.tipo }} · prazo {{ p.prazo|date:"d/m/Y" }}</span></span>
+            {{ p.selo }}
+          </a></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="cartao__vazio">Nenhum pedido ou manifestação aguardando resposta.</p>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <section class="cartao" aria-labelledby="t-publicados">
+        <h2 id="t-publicados" class="cartao__titulo">Publicado recentemente</h2>
+        {% if inicio.publicados %}
+        <ul class="lista-linhas">
+          {% for p in inicio.publicados %}
+          <li><a href="{{ p.url }}">
+            <span class="lista-linhas__texto"><strong>{{ p.titulo }}</strong><span class="lista-linhas__apoio">{{ p.tipo }} · {{ p.quando|date:"d/m/Y" }}</span></span>
+          </a></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="cartao__vazio">Nada publicado ainda.</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="inicio__coluna">
+      {% if inicio.atalhos %}
+      <section class="cartao" aria-labelledby="t-criar">
+        <h2 id="t-criar" class="cartao__titulo">Criar rapidamente</h2>
+        <ul class="criar-rapido">
+          {% for a in inicio.atalhos %}
+          <li><a href="{{ a.url }}">{% include "portal/icones/"|add:a.icone|add:".svg" %}<span>{{ a.rotulo }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <section class="cartao" aria-labelledby="t-atividade">
+        <h2 id="t-atividade" class="cartao__titulo">Atividade da equipe</h2>
+        {% if inicio.atividade %}
+        <ul class="atividade">
+          {% for a in inicio.atividade %}
+          <li>
+            <span class="avatar" aria-hidden="true">{{ a.inicial }}</span>
+            <span class="atividade__texto">
+              <strong>{{ a.quem }}</strong> {{ a.verbo }} {{ a.tipo }}
+              {% if a.url %}<a href="{{ a.url }}">“{{ a.objeto }}”</a>{% else %}“{{ a.objeto }}”{% endif %}
+              <time class="lista-linhas__apoio" datetime="{{ a.quando|date:'c' }}">há {{ a.quando|timesince }}</time>
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="cartao__vazio">Ainda não há atividade registrada.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+  {% if app_list %}
+  <section class="cartao" aria-labelledby="t-areas">
+    <h2 id="t-areas" class="cartao__titulo">Todas as áreas</h2>
+    <div class="areas">
+      {% for app in app_list %}
+      <div class="areas__grupo">
+        <h3>{{ app.name }}</h3>
+        <ul>{% for model in app.models %}{% if model.admin_url %}<li><a href="{{ model.admin_url }}">{{ model.name }}</a></li>{% endif %}{% endfor %}</ul>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 </div>
-{{ block.super }}
 {% endblock %}
+
+{% block sidebar %}{% endblock %}

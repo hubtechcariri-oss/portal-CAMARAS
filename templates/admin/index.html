@@ -4,6 +4,9 @@
 
 {% block coltype %}colM{% endblock %}
 
+{# O menu lateral também aparece no Início (o Django o esconde por padrão). #}
+{% block nav-sidebar %}{% include "admin/nav_sidebar.html" %}{% endblock %}
+
 {% block content %}
 {% painel_inicio as inicio %}
 <div id="content-main" class="inicio">

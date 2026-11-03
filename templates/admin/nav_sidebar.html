@@ -1,0 +1,34 @@
+{% load painel %}
+{% painel_menu as menu %}
+{# Menu lateral fixo, agrupado por tarefa. Em telas estreitas vira um menu recolhível acima do conteúdo. #}
+<nav id="nav-sidebar" class="menu-painel" aria-label="Menu do painel">
+  {# O script do Django espera este campo; o filtro rápido não é usado neste menu. #}
+  <input type="search" id="nav-filter" hidden aria-hidden="true" tabindex="-1">
+  <details class="menu-painel__caixa" data-menu-painel open>
+    <summary class="menu-painel__abrir">{% include "admin/icones/menu.svg" %}<span>Menu</span></summary>
+    <ul class="menu-painel__lista">
+      <li class="menu-painel__grupo">
+        <a class="menu-painel__inicio{% if menu.inicio.atual %} is-atual{% endif %}" href="{{ menu.inicio.url }}"{% if menu.inicio.atual %} aria-current="page"{% endif %}>
+          {% include "admin/icones/casa.svg" %}<span>Início</span>
+        </a>
+      </li>
+      {% for g in menu.grupos %}
+      <li class="menu-painel__grupo{% if g.atual %} is-atual{% endif %}">
+        <span class="menu-painel__titulo" id="menu-{{ g.chave }}">
+          {% if g.icone == "engrenagem" %}{% include "admin/icones/engrenagem.svg" %}{% else %}{% include "portal/icones/"|add:g.icone|add:".svg" %}{% endif %}
+          <span>{{ g.rotulo }}</span>
+          {% if g.contador %}<span class="contagem" aria-label="{{ g.contador }} em aberto">{{ g.contador }}</span>{% endif %}
+        </span>
+        <ul aria-labelledby="menu-{{ g.chave }}">
+          {% for i in g.itens %}
+          <li><a href="{{ i.url }}"{% if i.atual %} class="is-atual" aria-current="page"{% endif %}>
+            <span>{{ i.rotulo }}</span>
+            {% if i.contador %}<span class="contagem" aria-label="{{ i.contador }} em aberto">{{ i.contador }}</span>{% endif %}
+          </a></li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+</nav>

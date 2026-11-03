@@ -36,6 +36,24 @@
     if (titulo) ["input", "keyup", "change"].forEach(function (ev) { titulo.addEventListener(ev, function () { setTimeout(atualizarSlug, 0); }); });
     atualizarSlug();
   }
+
+  /* Menu lateral: aberto em telas largas, recolhido no celular (abre pelo botão "Menu"). */
+  var menu = document.querySelector("[data-menu-painel]");
+  if (menu && window.matchMedia) {
+    var estreita = window.matchMedia("(max-width: 1023px)");
+    var ajustarMenu = function () { if (estreita.matches) menu.removeAttribute("open"); else menu.setAttribute("open", ""); };
+    ajustarMenu();
+    if (estreita.addEventListener) estreita.addEventListener("change", ajustarMenu);
+  }
+
+  /* Menu do usuário: fecha com Esc (devolvendo o foco) e ao clicar fora. */
+  var conta = document.querySelector("[data-menu-usuario]");
+  if (conta) {
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && conta.open) { conta.open = false; conta.querySelector("summary").focus(); }
+    });
+    document.addEventListener("click", function (ev) { if (conta.open && !conta.contains(ev.target)) conta.open = false; });
+  }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
   else iniciar();

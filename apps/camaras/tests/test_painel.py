@@ -148,3 +148,37 @@ class InicioDadosReaisTests(TestCase):
         # Sem lista "Adicionar/Modificar"
         self.assertNotContains(r, 'class="addlink"')
         self.assertNotContains(r, 'class="changelink"')
+
+
+class MenuLateralTests(TestCase):
+    def setUp(self):
+        self.a = criar_camara("menu-a.test", "Câmara Municipal A")
+        Pedido.objects.create(camara=self.a, nome="X", email="x@exemplo.com", pedido="Info")
+        self.client.force_login(User.objects.create_superuser("adm_menu", "a@a.local", "x"))
+
+    def test_menu_agrupado_em_todas_as_telas_com_item_atual(self):
+        from django.contrib import admin
+
+        for url in ["/admin/", "/admin/noticias/noticia/", "/admin/esic/pedido/"]:
+            r = self.client.get(url, HTTP_HOST="menu-a.test")
+            html = r.content.decode()
+            self.assertIn('class="menu-painel"', html, url)
+            for grupo in ["Início", "Conteúdo", "Legislativo", "Transparência", "Atendimento", "Configurações"]:
+                self.assertIn(f"<span>{grupo}</span>", html, (url, grupo))
+            # todas as áreas registradas ficam a um clique, a partir de qualquer tela
+            for modelo in admin.site._registry:
+                lista = f"/admin/{modelo._meta.app_label}/{modelo._meta.model_name}/"
+                self.assertIn(f'href="{lista}"', html, (url, lista))
+        self.assertEqual(html.count('aria-current="page"'), 1)
+        self.assertRegex(html, r'href="/admin/esic/pedido/" class="is-atual" aria-current="page">\s*<span>e-SIC')
+        self.assertContains(r, 'aria-label="1 em aberto"')
+        inicio = self.client.get("/admin/", HTTP_HOST="menu-a.test")
+        self.assertContains(inicio, 'href="/admin/" aria-current="page"', html=False)
+
+    def test_menu_do_usuario_substitui_boas_vindas(self):
+        r = self.client.get("/admin/", HTTP_HOST="menu-a.test")
+        self.assertContains(r, 'class="usuario__botao"')
+        self.assertContains(r, "Encerrar sessão")
+        self.assertNotContains(r, "Bem-vindo(a)")
+        # o botão de sair continua sendo um POST com CSRF
+        self.assertContains(r, 'id="logout-form" method="post" action="/admin/logout/"')

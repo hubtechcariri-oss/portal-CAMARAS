@@ -1,0 +1,22 @@
+{% extends "admin/change_form.html" %}
+{% load admin_modify %}
+{# Duas colunas: conteúdo à esquerda; cartão "Publicação" com as ações à direita. Empilha em telas estreitas. #}
+{% block field_sets %}
+<div class="form-duas-colunas">
+  <div class="form-duas-colunas__principal">
+    {% for fieldset in adminform %}{% if not forloop.last %}
+      {% include "admin/includes/fieldset.html" with heading_level=2 prefix="fieldset" id_prefix=0 id_suffix=forloop.counter0 %}
+    {% endif %}{% endfor %}
+  </div>
+  <aside class="form-duas-colunas__lateral" aria-label="Publicação">
+    {% for fieldset in adminform %}{% if forloop.last %}
+      {% include "admin/includes/fieldset.html" with heading_level=2 prefix="fieldset" id_prefix=0 id_suffix=forloop.counter0 %}
+    {% endif %}{% endfor %}
+    {% if original and original.publicada %}
+      <p class="form-duas-colunas__link"><a href="/noticias/{{ original.slug }}/" target="_blank" rel="noopener">Ver no portal</a></p>
+    {% endif %}
+    {% submit_row %}
+  </aside>
+</div>
+{% endblock %}
+{% block submit_buttons_bottom %}{% endblock %}

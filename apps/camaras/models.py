@@ -18,6 +18,10 @@ class Camara(models.Model):
         help_text="Nome e contato do encarregado pelo tratamento de dados (LGPD, art. 41).",
     )
     cor_primaria = models.CharField(max_length=7, default="#0b4f8a", help_text="Cor em hexadecimal.")
+    brasao = models.ImageField("brasão", upload_to="camaras/", blank=True, help_text="PNG ou SVG com fundo transparente.")
+    facebook = models.URLField(blank=True)
+    instagram = models.URLField(blank=True)
+    youtube = models.URLField(blank=True)
     ativa = models.BooleanField(default=True)
     criada_em = models.DateTimeField(auto_now_add=True)
 

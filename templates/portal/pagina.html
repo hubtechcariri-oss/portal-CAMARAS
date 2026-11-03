@@ -1,0 +1,10 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ pagina.titulo }} · {% endblock %}
+{% block conteudo %}
+<article class="texto-corrido">
+  <h1>{{ pagina.titulo }}</h1>
+  {% if pagina.resumo %}<p class="pagina__resumo">{{ pagina.resumo }}</p>{% endif %}
+  {% if pagina.imagem %}<img class="pagina__imagem" src="{{ pagina.imagem.url }}" alt="{{ pagina.texto_alternativo }}">{% endif %}
+  {{ pagina.corpo|linebreaks }}
+</article>
+{% endblock %}

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.transparencia",
     "apps.esic",
     "apps.ouvidoria",
+    "apps.conteudo",
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.camaras.context_processors.camara",
+                "apps.conteudo.context_processors.menu",
             ],
         },
     },

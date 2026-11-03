@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.camaras import views as portal
+from apps.conteudo import views as conteudo
 from apps.camaras.anexos import baixar_anexo_equipe
 from apps.legislativo import views as legislativo
 from apps.noticias import views as noticias
@@ -18,6 +19,8 @@ urlpatterns = [
     path("", portal.inicio, name="inicio"),
     path("acessibilidade/", portal.acessibilidade, name="acessibilidade"),
     path("privacidade/", portal.privacidade, name="privacidade"),
+    path("institucional/mesa-diretora/", conteudo.mesa_diretora, name="mesa_diretora"),
+    path("institucional/<slug:slug>/", conteudo.pagina, name="pagina"),
     path("noticias/", noticias.lista, name="noticias"),
     path("noticias/<slug:slug>/", noticias.detalhe, name="noticia"),
     path("vereadores/", legislativo.vereadores, name="vereadores"),

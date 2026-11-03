@@ -18,6 +18,13 @@ fi
 
 python manage.py migrate --noinput -v0
 
+# Completa o conteúdo de demonstração que faltar (imagens, banners, páginas). Não sobrescreve edições.
+HOSTS=(--host localhost)
+if [ -n "${CODESPACE_NAME:-}" ]; then
+  HOSTS+=(--host "${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}")
+fi
+python manage.py criar_demo "${HOSTS[@]}"
+
 pkill -f "manage.py runserver" 2>/dev/null; sleep 1
 nohup python manage.py runserver 0.0.0.0:8000 > /tmp/portal.log 2>&1 &
 

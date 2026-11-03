@@ -3,7 +3,7 @@
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Painel{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/painel.css' %}?v=15">
+<link rel="stylesheet" href="{% static 'css/painel.css' %}?v=18">
 {% painel_camara as cam %}
 {% if cam %}<style>
   :root, html[data-theme="light"], html[data-theme="dark"] {
@@ -24,6 +24,36 @@
   </a>
 </div>
 {% if user.is_anonymous %}{% include "admin/color_theme_toggle.html" %}{% endif %}
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<script src="{% static 'js/painel.js' %}?v=2" defer></script>
+{% endblock %}
+
+{# Menu do usuário com avatar, no lugar de "Bem-vindo(a), … / Encerrar sessão". #}
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools" class="usuario">
+  <details class="usuario__menu" data-menu-usuario>
+    <summary class="usuario__botao">
+      <span class="avatar" aria-hidden="true">{% firstof user.get_short_name user.get_username as nome %}{{ nome|slice:":1"|upper }}</span>
+      <span class="usuario__nome">{% firstof user.get_short_name user.get_username %}</span>
+      <span class="visually-hidden">: abrir menu da conta</span>
+    </summary>
+    <div class="usuario__lista">
+      {% block userlinks %}
+      {% if site_url %}<a href="{{ site_url }}" target="_blank" rel="noopener">Ver o portal</a>{% endif %}
+      {% if user.has_usable_password %}<a href="{% url 'admin:password_change' %}">Alterar senha</a>{% endif %}
+      <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Encerrar sessão</button>
+      </form>
+      {% endblock %}
+    </div>
+  </details>
+  {% include "admin/color_theme_toggle.html" %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

@@ -75,9 +75,6 @@ class NoticiaAdmin(AdminDaCamara):
         ("Publicação", {"fields": ["publicada", "publicada_em", "camara", "slug"]}),
     ]
 
-    class Media:
-        js = ["js/painel.js"]
-
     @admin.display(description="imagem")
     def miniatura(self, obj):
         return previa(obj.imagem, 45)

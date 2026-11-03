@@ -244,3 +244,75 @@ def painel_inicio(context):
         "atividade": _atividade(usuario),
         "atalhos": resumo["atalhos"],
     }
+
+
+# ---------------------------------------------------------------------------
+# Menu lateral (tarefa 8): agrupado por tarefa, a partir de `available_apps`
+# (já filtrado pelas permissões do usuário). Modelo não listado cai em "Outros".
+# ---------------------------------------------------------------------------
+
+MENU = [
+    ("conteudo", "Conteúdo", "noticia", [
+        ("noticias.noticia", "Notícias"), ("conteudo.banner", "Banners"), ("conteudo.pagina", "Páginas"),
+    ]),
+    ("legislativo", "Legislativo", "sessao", [
+        ("legislativo.sessao", "Sessões"), ("legislativo.materia", "Matérias"), ("legislativo.norma", "Leis e normas"),
+        ("legislativo.vereador", "Vereadores"), ("legislativo.legislatura", "Legislaturas"),
+    ]),
+    ("transparencia", "Transparência", "transparencia", [
+        ("transparencia.documento", "Documentos"), ("transparencia.categoriatransparencia", "Categorias"),
+        ("transparencia.grupotransparencia", "Grupos"),
+    ]),
+    ("atendimento", "Atendimento", "ouvidoria", [
+        ("esic.pedido", "e-SIC (pedidos)"), ("ouvidoria.manifestacao", "Ouvidoria"),
+    ]),
+    ("configuracoes", "Configurações", "engrenagem", [
+        ("camaras.identidadeportal", "Brasão, cores e contatos"), ("camaras.camara", "Câmaras"),
+        ("auth.user", "Usuários"), ("auth.group", "Grupos e permissões"),
+    ]),
+]
+
+
+@register.simple_tag(takes_context=True)
+def painel_menu(context):
+    from apps.esic.models import Pedido
+    from apps.ouvidoria.models import Manifestacao
+
+    request = context.get("request")
+    caminho = request.path if request else ""
+    modelos = {}
+    for app in context.get("available_apps", []):
+        for m in app["models"]:
+            if m.get("admin_url"):
+                modelos[f"{app['app_label']}.{m['object_name'].lower()}"] = m
+
+    usuario = request.user
+    contadores = {}
+    for modelo, chave in [(Pedido, "esic.pedido"), (Manifestacao, "ouvidoria.manifestacao")]:
+        if chave in modelos:
+            contadores[chave] = _escopo(modelo.objects.filter(situacao__in=modelo.ABERTAS), usuario).count()
+
+    # Item atual: o endereço de lista mais longo que é prefixo do caminho.
+    atual = max((m["admin_url"] for m in modelos.values() if caminho.startswith(m["admin_url"])), key=len, default=None)
+
+    grupos, usados = [], set()
+    for chave, rotulo, icone, itens in MENU:
+        linhas = []
+        for modelo, nome in itens:
+            if modelo in modelos:
+                usados.add(modelo)
+                m = modelos[modelo]
+                linhas.append({"rotulo": nome, "url": m["admin_url"], "atual": m["admin_url"] == atual,
+                               "contador": contadores.get(modelo)})
+        if chave == "configuracoes":
+            for modelo, m in modelos.items():  # nada fica de fora: modelos novos aparecem aqui
+                if modelo not in usados:
+                    linhas.append({"rotulo": m["name"], "url": m["admin_url"], "atual": m["admin_url"] == atual,
+                                   "contador": None})
+        if linhas:
+            total = sum(l["contador"] or 0 for l in linhas)
+            grupos.append({"chave": chave, "rotulo": rotulo, "icone": icone, "itens": linhas,
+                           "contador": total if chave == "atendimento" else None,
+                           "atual": any(l["atual"] for l in linhas)})
+    inicio_url = reverse("admin:index")
+    return {"inicio": {"url": inicio_url, "atual": caminho == inicio_url}, "grupos": grupos}

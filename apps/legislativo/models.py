@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.camaras.models import ModeloDaCamara
-from apps.camaras.midia import VALIDA_DOCUMENTO, VALIDA_IMAGEM, CaminhoMidia
+from apps.camaras.midia import VALIDA_DOCUMENTO, CaminhoMidia, ImagemPadronizada
 
 
 class Legislatura(ModeloDaCamara):
@@ -21,10 +21,7 @@ class Vereador(ModeloDaCamara):
     nome_parlamentar = models.CharField(max_length=120)
     nome_civil = models.CharField(max_length=200, blank=True)
     partido = models.CharField(max_length=30, blank=True)
-    foto = models.ImageField(
-        upload_to=CaminhoMidia("vereadores"), blank=True, validators=VALIDA_IMAGEM,
-        help_text="Foto de rosto, de preferência quadrada (mínimo 400 × 400 px).",
-    )
+    foto = ImagemPadronizada(upload_to=CaminhoMidia("vereadores"), blank=True, formato="vereador")
     biografia = models.TextField(blank=True)
     email = models.EmailField("e-mail", blank=True)
     legislaturas = models.ManyToManyField(Legislatura, blank=True, related_name="vereadores")

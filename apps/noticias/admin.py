@@ -2,7 +2,13 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
-from apps.camaras.admin_mixins import AdminDaCamara, FormDaCamara, SituacaoPublicacaoFilter, selo_publicacao
+from apps.camaras.admin_mixins import (
+    AdminDaCamara,
+    FormDaCamara,
+    SituacaoPublicacaoFilter,
+    UltimosDiasFilter,
+    selo_publicacao,
+)
 from apps.camaras.midia import previa
 from apps.camaras.texto_rico import limpar_html, tem_texto
 from apps.camaras.widgets import EditorTexto
@@ -58,7 +64,7 @@ class NoticiaAdmin(AdminDaCamara):
     list_display = ["miniatura", "titulo", "publicada_em", "situacao"]
     list_display_links = ["miniatura", "titulo"]
     readonly_fields = ["imagem_atual"]
-    list_filter = [SituacaoPublicacaoFilter]
+    list_filter = [SituacaoPublicacaoFilter, UltimosDiasFilter]
     search_fields = ["titulo", "corpo"]
     prepopulated_fields = {"slug": ["titulo"]}
     date_hierarchy = "publicada_em"

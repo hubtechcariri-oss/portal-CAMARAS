@@ -307,3 +307,51 @@ form .aligned .editor-texto__area ul, form .aligned .editor-texto__area ol, .edi
   html:not([data-theme="light"]) .editor-texto__area:focus { outline-color: var(--foco-cor); }
 }
 html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { filter: invert(1); opacity: .9; }
+
+/* ---------------------------------------------------------------------------
+   Início (tarefa 7): indicadores, prazos, publicações, atalhos e atividade.
+   --------------------------------------------------------------------------- */
+.dashboard #content-main.inicio { display: block; }
+.dashboard #content { max-width: 1320px; }
+.indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--esp-4); list-style: none; margin: 0; padding: 0; }
+.indicadores > li { list-style: none; padding: 0; margin: 0; }
+.indicador { display: flex; flex-direction: column; gap: var(--esp-1); height: 100%; box-sizing: border-box; padding: var(--esp-4) var(--esp-5);
+  background: var(--painel-cartao); border: 1px solid var(--cartao-borda); border-top: 5px solid var(--estado-neutro-texto);
+  border-radius: var(--raio-cartao); color: var(--body-fg) !important; text-decoration: none !important; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.indicador:hover { border-color: var(--painel-cor); }
+.indicador--ok { border-top-color: var(--estado-ok-texto); }
+.indicador--atencao { border-top-color: var(--estado-atencao-texto); }
+.indicador--critico { border-top-color: var(--estado-critico); }
+.indicador__topo { display: flex; align-items: center; gap: var(--esp-2); flex-wrap: wrap; }
+.indicador__topo svg { width: 22px; height: 22px; color: var(--link-fg); flex: none; }
+.indicador__rotulo { font-size: var(--fs-cartao); font-weight: 700; color: var(--texto-titulo); margin-right: auto; }
+.indicador__numero { font-size: var(--fs-indicador); font-weight: 700; line-height: 1.1; color: var(--texto-titulo); font-variant-numeric: tabular-nums; margin-top: var(--esp-2); }
+.indicador--critico .indicador__numero { color: var(--estado-critico); }
+.indicador__unidade { font-size: var(--fs-apoio); font-weight: 600; color: var(--texto-apoio); }
+.indicador__detalhe { font-size: var(--fs-apoio); color: var(--texto-apoio); }
+
+.inicio__colunas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-4); margin-bottom: var(--esp-4); }
+.inicio__coluna { display: flex; flex-direction: column; gap: var(--esp-4); min-width: 0; }
+.cartao { background: var(--painel-cartao); border: 1px solid var(--cartao-borda); border-radius: var(--raio-cartao); padding: var(--esp-4) var(--esp-5); box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+#content .cartao__titulo { font-size: var(--fs-cartao); font-weight: 700; color: var(--texto-titulo); margin: 0 0 var(--esp-3); padding: 0; background: none; text-transform: none; letter-spacing: 0; }
+.cartao__vazio { color: var(--texto-apoio); margin: 0; }
+.lista-linhas, .atividade, .criar-rapido, .areas ul { list-style: none; margin: 0; padding: 0; }
+.lista-linhas li, .atividade li, .criar-rapido li, .areas li { list-style: none; padding: 0; margin: 0; }
+.lista-linhas li + li, .atividade li + li { border-top: 1px solid var(--cartao-borda); }
+.lista-linhas a { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); min-height: var(--alvo-minimo); padding: var(--esp-2) 0; color: var(--body-fg) !important; text-decoration: none !important; }
+.lista-linhas a:hover strong { text-decoration: underline; }
+.lista-linhas__texto { display: flex; flex-direction: column; min-width: 0; }
+.lista-linhas__texto strong { font-weight: 600; color: var(--link-fg); overflow: hidden; text-overflow: ellipsis; }
+.lista-linhas__apoio { display: block; font-size: var(--fs-apoio); color: var(--texto-apoio); }
+.criar-rapido { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--esp-2); }
+.criar-rapido a { display: flex; align-items: center; gap: var(--esp-2); min-height: var(--alvo-minimo); padding: var(--esp-2) var(--esp-3); box-sizing: border-box; height: 100%;
+  border: 1px solid var(--cartao-borda); border-radius: var(--raio-campo); font-weight: 600; color: var(--body-fg) !important; text-decoration: none !important; line-height: 1.25; }
+.criar-rapido a:hover { border-color: var(--painel-cor); background: var(--estado-neutro-fundo); }
+.criar-rapido svg { width: 22px; height: 22px; flex: none; color: var(--link-fg); }
+.atividade li { display: flex; gap: var(--esp-3); align-items: flex-start; padding: var(--esp-2) 0; }
+.atividade__texto { line-height: 1.45; min-width: 0; overflow-wrap: anywhere; }
+.avatar { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: 14px; }
+.areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--esp-4); }
+#content .areas h3 { font-size: var(--fs-apoio); text-transform: uppercase; letter-spacing: .05em; color: var(--texto-apoio); margin: 0 0 var(--esp-1); }
+.areas a { display: inline-flex; align-items: center; min-height: 32px; }
+@media (max-width: 900px) { .inicio__colunas { grid-template-columns: minmax(0, 1fr); } }

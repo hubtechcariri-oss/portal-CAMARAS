@@ -27,8 +27,8 @@ class PainelInicioTests(TestCase):
         u.user_permissions.add(*Permission.objects.filter(content_type__app_label="esic"))
         Membro.objects.create(usuario=u, camara=self.a)
         r = self.entrar(u)
-        self.assertContains(r, "Pedidos de informação (e-SIC)")
-        self.assertContains(r, '<span class="painel-fila__numero">3</span>', html=False)
+        self.assertContains(r, '<span class="indicador__rotulo">e-SIC</span>')
+        self.assertContains(r, '<span class="indicador__numero">3</span>', html=False)
         self.assertContains(r, "1 com prazo vencido")
         self.assertContains(r, "Câmara Municipal A")  # nome no cabeçalho
         self.assertContains(r, 'class="selo selo--critico">Crítico<')
@@ -43,7 +43,7 @@ class PainelInicioTests(TestCase):
         )
         r = self.entrar(u)
         self.assertContains(r, 'href="/admin/esic/pedido/?prazo=abertas"')
-        self.assertContains(r, '<span class="painel-fila__numero">2</span>', html=False)
+        self.assertContains(r, '<span class="indicador__numero">2</span>', html=False)
         lista = self.client.get("/admin/esic/pedido/?prazo=abertas", HTTP_HOST="camara-a.test")
         self.assertEqual(lista.context["cl"].result_count, 2)
         prazos = [p.prazo for p in lista.context["cl"].result_list]
@@ -52,13 +52,13 @@ class PainelInicioTests(TestCase):
     def test_verde_so_quando_nao_ha_pendencia(self):
         u = User.objects.create_superuser("adm_fila", "a@a.local", "x")
         r = self.entrar(u)
-        self.assertContains(r, 'painel-fila--critico" href="/admin/esic/pedido/')
+        self.assertContains(r, 'indicador indicador--critico" href="/admin/esic/pedido/')
         Pedido.objects.update(prazo=timezone.localdate() + timedelta(days=30))
         r = self.entrar(u)  # pendente sem urgência: neutro, nunca verde
-        self.assertContains(r, 'painel-fila--neutro" href="/admin/esic/pedido/')
+        self.assertContains(r, 'indicador indicador--neutro" href="/admin/esic/pedido/')
         Pedido.objects.update(situacao=Pedido.Situacao.RESPONDIDO)
         r = self.entrar(u)
-        self.assertContains(r, 'painel-fila--ok" href="/admin/esic/pedido/')
+        self.assertContains(r, 'indicador indicador--ok" href="/admin/esic/pedido/')
         self.assertContains(r, "nada aguardando resposta")
 
     def test_comunicacao_ve_atalhos_mas_nao_ve_esic(self):
@@ -66,7 +66,8 @@ class PainelInicioTests(TestCase):
         u.groups.add(Group.objects.get(name="Comunicação"))
         Membro.objects.create(usuario=u, camara=self.a)
         r = self.entrar(u)
-        self.assertNotContains(r, "Pedidos de informação (e-SIC)")
+        self.assertNotContains(r, '<span class="indicador__rotulo">e-SIC</span>')
+        self.assertNotContains(r, "Prazos e pendências")
         self.assertContains(r, "Nova notícia")
         self.assertContains(r, "Brasão, cores e contatos")
         self.assertNotContains(r, "Nova sessão")
@@ -85,3 +86,65 @@ class RotulosTest(TestCase):
         self.assertContains(resposta, "Câmara")
         self.assertContains(resposta, 'class="legenda-obrigatorio"')
         self.assertContains(resposta, 'class="required"')
+
+
+class InicioDadosReaisTests(TestCase):
+    """Indicadores, prazos, publicações e atividade do Início vêm do banco e batem com as listas."""
+
+    def setUp(self):
+        from django.contrib.admin.models import ADDITION, LogEntry
+        from django.contrib.contenttypes.models import ContentType
+
+        from apps.legislativo.models import Sessao
+        from apps.noticias.models import Noticia
+
+        self.a = criar_camara("inicio-a.test", "Câmara Municipal A")
+        self.b = criar_camara("inicio-b.test", "Câmara Municipal B")
+        agora = timezone.now()
+        for camara, dias in [(self.a, 1), (self.a, 10), (self.a, 45), (self.b, 2)]:
+            Noticia.objects.create(camara=camara, titulo=f"N {camara.pk} {dias}", slug=f"n-{dias}", corpo="x",
+                                   publicada_em=agora - timedelta(days=dias))
+        Noticia.objects.create(camara=self.a, titulo="Futura", slug="futura", corpo="x",
+                               publicada_em=agora + timedelta(days=3))
+        Sessao.objects.create(camara=self.a, numero=7, data_hora=agora + timedelta(days=2))
+        Sessao.objects.create(camara=self.b, numero=1, data_hora=agora + timedelta(hours=5))
+        p = Pedido.objects.create(camara=self.a, nome="X", email="x@exemplo.com", pedido="Info")
+        self.u = User.objects.create_user("editor", password="x", is_staff=True, first_name="Ana")
+        self.u.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label__in=["esic", "noticias", "legislativo"]))
+        Membro.objects.create(usuario=self.u, camara=self.a)
+        colega = User.objects.create_user("colega", password="x", is_staff=True, first_name="Bruno")
+        Membro.objects.create(usuario=colega, camara=self.a)
+        estranho = User.objects.create_user("estranho", password="x", is_staff=True, first_name="Zé")
+        Membro.objects.create(usuario=estranho, camara=self.b)
+        ct = ContentType.objects.get_for_model(Pedido)
+        LogEntry.objects.log_actions(colega.pk, [p], ADDITION, single_object=True)
+        LogEntry.objects.create(user=estranho, content_type=ct, object_id="0", object_repr="Outro", action_flag=ADDITION)
+        self.client.force_login(self.u)
+
+    def test_indicadores_batem_com_as_listas_e_respeitam_a_camara(self):
+        import time
+
+        inicio = time.perf_counter()
+        r = self.client.get("/admin/", HTTP_HOST="inicio-a.test")
+        self.assertLess(time.perf_counter() - inicio, 1.0)
+        html = r.content.decode()
+        # Notícias: 2 nos últimos 30 dias (a de 45 dias, a futura e a da outra câmara não contam)
+        self.assertIn('href="/admin/noticias/noticia/?ultimos_dias=30"', html)
+        lista = self.client.get("/admin/noticias/noticia/?ultimos_dias=30")
+        self.assertEqual(lista.context["cl"].result_count, 2)
+        self.assertInHTML('<span class="indicador__numero">2</span>', html, count=1)
+        self.assertContains(r, "1 agendada")
+        # Próxima sessão é a da própria câmara (a da câmara B é mais cedo, mas não aparece)
+        self.assertContains(r, "Próxima sessão")
+        self.assertContains(r, "em 2 dias")
+        # Prazos e pendências, publicado recentemente, atividade
+        self.assertContains(r, "Prazos e pendências")
+        self.assertContains(r, "Publicado recentemente")
+        self.assertContains(r, "N %d 1" % self.a.pk)
+        self.assertNotContains(r, "N %d 2" % self.b.pk)
+        self.assertContains(r, "<strong>Bruno</strong> adicionou")
+        self.assertNotContains(r, "<strong>Zé</strong>")
+        # Sem lista "Adicionar/Modificar"
+        self.assertNotContains(r, 'class="addlink"')
+        self.assertNotContains(r, 'class="changelink"')

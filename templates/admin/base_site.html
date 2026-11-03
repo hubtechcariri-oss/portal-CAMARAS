@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+{% load static painel %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Painel{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/painel.css' %}?v=2">
+{% painel_camara as cam %}
+{% if cam %}<style>
+  :root, html[data-theme="light"], html[data-theme="dark"] {
+    --painel-cor: {{ cam.cor_primaria|default:"#0b4f8a" }};
+  }
+</style>{% endif %}
+{% endblock %}
+
+{% block branding %}
+{% painel_camara as cam %}
+<div id="site-name">
+  <a class="painel-marca" href="{% url 'admin:index' %}">
+    {% if cam.brasao %}<img class="painel-marca__brasao" src="{{ cam.brasao.url }}" alt="">{% endif %}
+    <span class="painel-marca__texto">
+      <span class="painel-marca__nome">{% if cam %}{{ cam.nome }}{% else %}Portal das Câmaras{% endif %}</span>
+      <span class="painel-marca__sub">Painel administrativo</span>
+    </span>
+  </a>
+</div>
+{% if user.is_anonymous %}{% include "admin/color_theme_toggle.html" %}{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

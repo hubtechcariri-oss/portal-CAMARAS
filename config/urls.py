@@ -12,6 +12,7 @@ from apps.transparencia import views as transparencia
 
 admin.site.site_header = "Portal das Câmaras: painel"
 admin.site.site_title = "Painel"
+admin.site.index_title = "Início"
 
 urlpatterns = [
     path("admin/", admin.site.urls),

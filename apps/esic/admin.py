@@ -1,14 +1,14 @@
 from django.contrib import admin, messages
 
-from apps.camaras.admin_mixins import AdminDaCamara
+from apps.camaras.admin_mixins import AdminDaCamara, FilaDeAtendimentoMixin, PrazoFilter
 
 from .models import Pedido
 
 
 @admin.register(Pedido)
-class PedidoAdmin(AdminDaCamara):
-    list_display = ["protocolo", "nome", "criado_em", "prazo", "situacao", "vencido"]
-    list_filter = ["situacao"]
+class PedidoAdmin(FilaDeAtendimentoMixin, AdminDaCamara):
+    list_display = ["protocolo", "nome", "criado_em", "prazo", "situacao", "selo_prazo"]
+    list_filter = [PrazoFilter, "situacao"]
     search_fields = ["protocolo", "nome", "email", "pedido"]
     readonly_fields = ["protocolo", "codigo_consulta", "prazo", "criado_em", "respondido_em", "anexo"]
     actions = ["prorrogar"]

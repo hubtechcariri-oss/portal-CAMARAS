@@ -19,6 +19,8 @@ class Pedido(ModeloDaCamara):
         RESPONDIDO = "respondido", "Respondido"
         NEGADO = "negado", "Negado"
 
+    ABERTAS = (Situacao.RECEBIDO, Situacao.EM_ANALISE, Situacao.PRORROGADO)
+
     protocolo = models.CharField(max_length=20, editable=False)
     codigo_consulta = models.CharField(
         "código de consulta", max_length=16, editable=False,

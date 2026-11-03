@@ -31,6 +31,35 @@ class PainelInicioTests(TestCase):
         self.assertContains(r, '<span class="painel-fila__numero">3</span>', html=False)
         self.assertContains(r, "1 com prazo vencido")
         self.assertContains(r, "Câmara Municipal A")  # nome no cabeçalho
+        self.assertContains(r, 'class="selo selo--critico">Crítico<')
+        self.assertContains(r, "próximo vence em 2 dias")
+
+    def test_numero_do_cartao_igual_ao_total_da_lista(self):
+        u = User.objects.create_user("atendente2", password="x", is_staff=True)
+        u.user_permissions.add(*Permission.objects.filter(content_type__app_label="esic"))
+        Membro.objects.create(usuario=u, camara=self.a)
+        Pedido.objects.filter(camara=self.a, prazo__gt=timezone.localdate() + timedelta(days=10)).update(
+            situacao=Pedido.Situacao.RESPONDIDO
+        )
+        r = self.entrar(u)
+        self.assertContains(r, 'href="/admin/esic/pedido/?prazo=abertas"')
+        self.assertContains(r, '<span class="painel-fila__numero">2</span>', html=False)
+        lista = self.client.get("/admin/esic/pedido/?prazo=abertas", HTTP_HOST="camara-a.test")
+        self.assertEqual(lista.context["cl"].result_count, 2)
+        prazos = [p.prazo for p in lista.context["cl"].result_list]
+        self.assertEqual(prazos, sorted(prazos))  # mais urgente primeiro
+
+    def test_verde_so_quando_nao_ha_pendencia(self):
+        u = User.objects.create_superuser("adm_fila", "a@a.local", "x")
+        r = self.entrar(u)
+        self.assertContains(r, 'painel-fila--critico" href="/admin/esic/pedido/')
+        Pedido.objects.update(prazo=timezone.localdate() + timedelta(days=30))
+        r = self.entrar(u)  # pendente sem urgência: neutro, nunca verde
+        self.assertContains(r, 'painel-fila--neutro" href="/admin/esic/pedido/')
+        Pedido.objects.update(situacao=Pedido.Situacao.RESPONDIDO)
+        r = self.entrar(u)
+        self.assertContains(r, 'painel-fila--ok" href="/admin/esic/pedido/')
+        self.assertContains(r, "nada aguardando resposta")
 
     def test_comunicacao_ve_atalhos_mas_nao_ve_esic(self):
         u = User.objects.create_user("comunicacao", password="x", is_staff=True)

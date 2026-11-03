@@ -2,33 +2,16 @@ import copy
 
 from django.contrib import admin, messages
 from django.db.models import Count, Q
-from django.utils import timezone
 
-from apps.camaras.admin_mixins import AdminDaCamara
+from apps.camaras.admin_mixins import AdminDaCamara, FilaDeAtendimentoMixin, PrazoFilter
 
 from .models import Manifestacao
 
 
-class VencidaFilter(admin.SimpleListFilter):
-    title = "prazo"
-    parameter_name = "prazo"
-
-    def lookups(self, request, model_admin):
-        return [("vencidas", "Vencidas"), ("abertas", "Em aberto")]
-
-    def queryset(self, request, queryset):
-        abertas = queryset.filter(situacao__in=Manifestacao.ABERTAS)
-        if self.value() == "vencidas":
-            return abertas.filter(prazo__lt=timezone.localdate())
-        if self.value() == "abertas":
-            return abertas
-        return queryset
-
-
 @admin.register(Manifestacao)
-class ManifestacaoAdmin(AdminDaCamara):
-    list_display = ["protocolo", "tipo", "assunto", "criado_em", "prazo", "situacao", "vencida"]
-    list_filter = [VencidaFilter, "tipo", "situacao"]
+class ManifestacaoAdmin(FilaDeAtendimentoMixin, AdminDaCamara):
+    list_display = ["protocolo", "tipo", "assunto", "criado_em", "prazo", "situacao", "selo_prazo"]
+    list_filter = [PrazoFilter, "tipo", "situacao"]
     search_fields = ["protocolo", "assunto", "descricao", "nome", "email"]
     readonly_fields = ["protocolo", "codigo_consulta", "prazo", "prorrogada", "criado_em", "respondida_em", "anexo"]
     fieldsets = [

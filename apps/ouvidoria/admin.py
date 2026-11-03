@@ -30,11 +30,11 @@ class ManifestacaoAdmin(AdminDaCamara):
     list_display = ["protocolo", "tipo", "assunto", "criado_em", "prazo", "situacao", "vencida"]
     list_filter = [VencidaFilter, "tipo", "situacao"]
     search_fields = ["protocolo", "assunto", "descricao", "nome", "email"]
-    readonly_fields = ["protocolo", "codigo_consulta", "prazo", "prorrogada", "criado_em", "respondida_em"]
+    readonly_fields = ["protocolo", "codigo_consulta", "prazo", "prorrogada", "criado_em", "respondida_em", "anexo"]
     fieldsets = [
-        ("Manifestação", {"fields": ["camara", "protocolo", "tipo", "assunto", "descricao", "criado_em"]}),
+        ("Manifestação", {"fields": ["camara", "protocolo", "tipo", "assunto", "descricao", "anexo", "criado_em"]}),
         ("Manifestante", {"fields": ["anonima", "sigilo", "nome", "email", "telefone"]}),
-        ("Tratamento", {"fields": ["situacao", "prazo", "prorrogada", "resposta", "respondida_em", "codigo_consulta"]}),
+        ("Tratamento", {"fields": ["situacao", "prazo", "prorrogada", "resposta", "anexo_resposta", "respondida_em", "codigo_consulta"]}),
     ]
     actions = ["prorrogar"]
 

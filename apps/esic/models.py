@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.anexos import DICA, VALIDADORES, CaminhoAnexo, obter_armazenamento
 from apps.camaras.protocolo import codigo_consulta, salvar_com_protocolo
 
 
@@ -27,9 +28,17 @@ class Pedido(ModeloDaCamara):
     nome = models.CharField(max_length=200)
     email = models.EmailField("e-mail")
     pedido = models.TextField()
+    anexo = models.FileField(
+        "anexo do solicitante", upload_to=CaminhoAnexo("esic"), storage=obter_armazenamento,
+        validators=VALIDADORES, blank=True, help_text=DICA,
+    )
     situacao = models.CharField("situação", max_length=12, choices=Situacao.choices, default=Situacao.RECEBIDO)
     prazo = models.DateField(editable=False)
     resposta = models.TextField(blank=True)
+    anexo_resposta = models.FileField(
+        "anexo da resposta", upload_to=CaminhoAnexo("esic"), storage=obter_armazenamento,
+        validators=VALIDADORES, blank=True, help_text=DICA,
+    )
     respondido_em = models.DateTimeField(null=True, blank=True)
 
     class Meta:

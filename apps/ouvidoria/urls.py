@@ -7,4 +7,5 @@ urlpatterns = [
     path("", views.nova, name="nova"),
     path("enviada/", views.confirmacao, name="confirmacao"),
     path("consulta/", views.consulta, name="consulta"),
+    path("consulta/<str:qual>/", views.baixar_anexo, name="anexo"),
 ]

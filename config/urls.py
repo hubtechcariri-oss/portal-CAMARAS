@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.camaras import views as portal
+from apps.camaras.anexos import baixar_anexo_equipe
 from apps.legislativo import views as legislativo
 from apps.noticias import views as noticias
 from apps.transparencia import views as transparencia
@@ -13,6 +14,7 @@ admin.site.site_title = "Painel"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("anexos/<path:caminho>", baixar_anexo_equipe, name="anexo_equipe"),
     path("", portal.inicio, name="inicio"),
     path("acessibilidade/", portal.acessibilidade, name="acessibilidade"),
     path("privacidade/", portal.privacidade, name="privacidade"),

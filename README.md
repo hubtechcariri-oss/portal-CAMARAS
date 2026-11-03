@@ -24,6 +24,14 @@ SaaS de portal institucional e de transparência para câmaras municipais. Um c�
 
 O Codespace para sozinho quando fica ocioso e consome a cota gratuita mensal do GitHub. Exclua-o em github.com/codespaces quando não precisar mais.
 
+## Anexos (e-SIC e Ouvidoria)
+
+O cidadão pode anexar um arquivo ao pedido ou à manifestação, e o atendente pode anexar um arquivo à resposta. Esses arquivos podem conter dados pessoais, por isso:
+
+- ficam em `ANEXOS_ROOT` (padrão `anexos_privados/`), **fora** da pasta pública de mídia. Em produção, use um volume persistente com backup;
+- o cidadão só baixa o anexo informando protocolo e código; a equipe só baixa anexos da própria câmara, pelo painel (`/anexos/...`);
+- o arquivo é aceito com até 10 MB e nos formatos PDF, imagens, documentos e planilhas comuns (`ANEXOS_EXTENSOES` em `settings.py`). É sempre entregue como download.
+
 ## Rodar localmente
 
 Com Docker:

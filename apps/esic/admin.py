@@ -10,7 +10,7 @@ class PedidoAdmin(AdminDaCamara):
     list_display = ["protocolo", "nome", "criado_em", "prazo", "situacao", "vencido"]
     list_filter = ["situacao"]
     search_fields = ["protocolo", "nome", "email", "pedido"]
-    readonly_fields = ["protocolo", "codigo_consulta", "prazo", "criado_em", "respondido_em"]
+    readonly_fields = ["protocolo", "codigo_consulta", "prazo", "criado_em", "respondido_em", "anexo"]
     actions = ["prorrogar"]
 
     @admin.display(boolean=True)

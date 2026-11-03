@@ -3,7 +3,7 @@ from django.http import Http404
 from .models import Dominio
 
 # Caminhos que não dependem de uma câmara (painel da plataforma, arquivos estáticos).
-CAMINHOS_SEM_CAMARA = ("/admin/", "/static/", "/media/")
+CAMINHOS_SEM_CAMARA = ("/admin/", "/anexos/", "/static/", "/media/")
 
 
 def resolver_camara(host):

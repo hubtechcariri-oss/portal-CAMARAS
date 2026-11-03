@@ -104,6 +104,12 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
 
+# Anexos de e-SIC e Ouvidoria podem conter dados pessoais: ficam fora do MEDIA_ROOT
+# (que é público) e só são entregues por views que checam permissão.
+ANEXOS_ROOT = Path(os.environ.get("ANEXOS_ROOT", BASE_DIR / "anexos_privados"))
+ANEXOS_TAMANHO_MAXIMO_MB = 10
+ANEXOS_EXTENSOES = ["pdf", "jpg", "jpeg", "png", "doc", "docx", "odt", "xls", "xlsx", "ods", "txt", "csv"]
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Prazos do e-SIC (LAI, art. 11): 20 dias, prorrogáveis por mais 10.

@@ -163,10 +163,10 @@ class Tramitacao(models.Model):
         APROVADA = "aprov", "Aprovada"
         REJEITADA = "rejei", "Rejeitada"
 
-    materia = models.ForeignKey(Materia, on_delete=models.CASCADE, related_name="tramitacoes")
+    materia = models.ForeignKey(Materia, verbose_name="matéria", on_delete=models.CASCADE, related_name="tramitacoes")
     data = models.DateField()
     descricao = models.CharField("descrição", max_length=255, help_text="Ex.: Lida em plenário; Parecer favorável da CCJ.")
-    sessao = models.ForeignKey(Sessao, on_delete=models.SET_NULL, null=True, blank=True, related_name="tramitacoes")
+    sessao = models.ForeignKey(Sessao, verbose_name="sessão", on_delete=models.SET_NULL, null=True, blank=True, related_name="tramitacoes")
     resultado = models.CharField(max_length=5, choices=Resultado.choices, blank=True)
     votos_sim = models.PositiveSmallIntegerField(null=True, blank=True)
     votos_nao = models.PositiveSmallIntegerField("votos não", null=True, blank=True)

@@ -41,3 +41,18 @@ class PainelInicioTests(TestCase):
         self.assertContains(r, "Nova notícia")
         self.assertContains(r, "Brasão, cores e contatos")
         self.assertNotContains(r, "Nova sessão")
+
+
+class RotulosTest(TestCase):
+    def test_campo_camara_com_acento_e_legenda_de_obrigatorio(self):
+        from django.contrib.auth import get_user_model
+
+        from apps.noticias.models import Noticia
+
+        self.assertEqual(Noticia._meta.get_field("camara").verbose_name, "câmara")
+        admin = get_user_model().objects.create_superuser("adm_rotulo", "a@a.local", "x-Senha-123")
+        self.client.force_login(admin)
+        resposta = self.client.get("/admin/noticias/noticia/add/")
+        self.assertContains(resposta, "Câmara")
+        self.assertContains(resposta, 'class="legenda-obrigatorio"')
+        self.assertContains(resposta, 'class="required"')

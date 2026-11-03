@@ -34,6 +34,23 @@ O cidadão pode anexar um arquivo ao pedido ou à manifestação, e o atendente 
 - o cidadão só baixa o anexo informando protocolo e código; a equipe só baixa anexos da própria câmara, pelo painel (`/anexos/...`);
 - o arquivo é aceito com até 10 MB e nos formatos PDF, imagens, documentos e planilhas comuns (`ANEXOS_EXTENSOES` em `settings.py`). É sempre entregue como download.
 
+## Imagens e arquivos pelo painel
+
+Tudo o que aparece no portal pode ser trocado pelo painel, sem mexer em código:
+
+| O quê | Onde no painel |
+|---|---|
+| Brasão, cor principal, redes sociais, endereço e contatos | Câmaras › Identidade do portal |
+| Banners rotativos da página inicial | Conteúdo › Banners |
+| Páginas institucionais (com imagem) | Conteúdo › Páginas |
+| Imagens das notícias | Notícias |
+| Fotos dos vereadores | Legislativo › Vereadores |
+| PDFs de leis, pautas, atas, matérias e transparência | no cadastro de cada item |
+
+Os arquivos ficam em `media/camara_<id>/<tipo>/<ano>/`, separados por câmara. Imagens aceitam JPG, PNG, WebP e GIF até 5 MB; documentos, PDF e formatos de escritório até 30 MB (`apps/camaras/midia.py`).
+
+Para quem cuida da comunicação da câmara, coloque o usuário no grupo **Comunicação** (criado automaticamente) e vincule-o à câmara.
+
 ## Rodar localmente
 
 Com Docker:

@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.midia import VALIDA_IMAGEM, CaminhoMidia
 
 
 class Banner(ModeloDaCamara):
@@ -9,7 +10,10 @@ class Banner(ModeloDaCamara):
 
     titulo = models.CharField("título", max_length=120)
     subtitulo = models.CharField("subtítulo", max_length=200, blank=True)
-    imagem = models.ImageField(upload_to="banners/", help_text="Recomendado: 1600 × 500 px.")
+    imagem = models.ImageField(
+        upload_to=CaminhoMidia("banners"), validators=VALIDA_IMAGEM,
+        help_text="Recomendado: 1600 × 500 px. JPG, PNG ou WebP até 5 MB.",
+    )
     texto_alternativo = models.CharField(
         "texto alternativo", max_length=200, blank=True,
         help_text="Descreva a imagem para leitores de tela. Deixe em branco se for só decorativa.",
@@ -50,7 +54,7 @@ class Pagina(ModeloDaCamara):
     slug = models.SlugField(max_length=160)
     resumo = models.CharField(max_length=300, blank=True)
     corpo = models.TextField(help_text="Texto da página. Parágrafos separados por linha em branco.")
-    imagem = models.ImageField(upload_to="paginas/", blank=True)
+    imagem = models.ImageField(upload_to=CaminhoMidia("paginas"), blank=True, validators=VALIDA_IMAGEM)
     texto_alternativo = models.CharField("texto alternativo da imagem", max_length=200, blank=True)
     menu = models.CharField(max_length=15, choices=Menu.choices, blank=True, default=Menu.INSTITUCIONAL)
     ordem = models.PositiveIntegerField(default=0)

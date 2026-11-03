@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.midia import VALIDA_DOCUMENTO, CaminhoMidia
 
 
 class GrupoTransparencia(models.Model):
@@ -58,7 +59,7 @@ class Documento(ModeloDaCamara):
         "competência", max_length=20, blank=True, help_text="Ex.: 09/2026, 2º quadrimestre/2026."
     )
     descricao = models.TextField("descrição", blank=True)
-    arquivo = models.FileField(upload_to="transparencia/%Y/", blank=True)
+    arquivo = models.FileField(upload_to=CaminhoMidia("transparencia"), blank=True, validators=VALIDA_DOCUMENTO)
     link_externo = models.URLField(blank=True, help_text="Ex.: consulta no sistema contábil.")
     valor = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
     publicado = models.BooleanField(default=True)

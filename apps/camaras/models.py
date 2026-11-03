@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from .midia import VALIDA_IMAGEM, CaminhoMidia
+
 
 class Camara(models.Model):
     """Um cliente do SaaS: uma câmara municipal (o "tenant")."""
@@ -18,7 +20,10 @@ class Camara(models.Model):
         help_text="Nome e contato do encarregado pelo tratamento de dados (LGPD, art. 41).",
     )
     cor_primaria = models.CharField(max_length=7, default="#0b4f8a", help_text="Cor em hexadecimal.")
-    brasao = models.ImageField("brasão", upload_to="camaras/", blank=True, help_text="PNG ou SVG com fundo transparente.")
+    brasao = models.ImageField(
+        "brasão", upload_to=CaminhoMidia("identidade"), blank=True, validators=VALIDA_IMAGEM,
+        help_text="PNG com fundo transparente, de preferência quadrado (mínimo 256 × 256 px).",
+    )
     facebook = models.URLField(blank=True)
     instagram = models.URLField(blank=True)
     youtube = models.URLField(blank=True)
@@ -33,6 +38,15 @@ class Camara(models.Model):
     def __str__(self):
         return self.nome
 
+
+
+class IdentidadePortal(Camara):
+    """A mesma câmara, vista pela equipe dela: brasão, cor, redes sociais e contatos."""
+
+    class Meta:
+        proxy = True
+        verbose_name = "identidade do portal"
+        verbose_name_plural = "identidade do portal"
 
 class Dominio(models.Model):
     """Domínios que respondem por uma câmara (ex.: camaraexemplo.ce.leg.br)."""

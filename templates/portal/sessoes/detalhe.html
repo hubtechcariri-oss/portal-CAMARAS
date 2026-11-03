@@ -1,0 +1,36 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ sessao }} · {% endblock %}
+{% block conteudo %}
+<p class="meta"><a href="{% url 'sessoes' %}">Sessões</a></p>
+<h1>{{ sessao }}</h1>
+<p class="meta">{{ sessao.data_hora|date:"l, d/m/Y \à\s H:i" }}{% if sessao.legislatura %} · {{ sessao.legislatura }}{% endif %}</p>
+{% if sessao.descricao %}{{ sessao.descricao|linebreaks }}{% endif %}
+<ul>
+  {% if sessao.pauta %}<li><a href="{{ sessao.pauta.url }}">Pauta</a></li>{% endif %}
+  {% if sessao.ata %}<li><a href="{{ sessao.ata.url }}">Ata</a></li>{% endif %}
+  {% if sessao.video_url %}<li><a href="{{ sessao.video_url }}" rel="noopener">Assistir ao vídeo da sessão</a></li>{% endif %}
+</ul>
+
+<h2>Presenças ({{ presentes|length }})</h2>
+{% if presentes %}<ul>{% for v in presentes %}<li><a href="{% url 'vereador' v.pk %}">{{ v.nome_parlamentar }}</a></li>{% endfor %}</ul>
+{% else %}<p>Presenças não registradas.</p>{% endif %}
+
+<h2>Matérias deliberadas</h2>
+{% if deliberacoes %}
+<div class="tabela-rolagem">
+<table>
+  <thead><tr><th scope="col">Matéria</th><th scope="col">Andamento</th><th scope="col">Resultado</th><th scope="col">Votos (sim/não/abst.)</th></tr></thead>
+  <tbody>
+  {% for t in deliberacoes %}
+    <tr>
+      <td><a href="{% url 'materia' t.materia.pk %}">{{ t.materia }}</a><br><span class="meta">{{ t.materia.ementa|truncatewords:20 }}</span></td>
+      <td>{{ t.descricao }}</td>
+      <td>{{ t.get_resultado_display }}</td>
+      <td>{% if t.votos_sim is not None %}{{ t.votos_sim }}/{{ t.votos_nao|default_if_none:"0" }}/{{ t.abstencoes|default_if_none:"0" }}{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}<p>Nenhuma matéria registrada nesta sessão.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Matérias legislativas · {% endblock %}
+{% block conteudo %}
+<h1>Matérias legislativas</h1>
+<form method="get" class="filtros" role="search">
+  <p><label for="q">Buscar no texto</label><input type="search" id="q" name="q" value="{{ termo }}"></p>
+  {% include "portal/_filtro_ano_tipo.html" %}
+  <p><label for="situacao">Situação</label>
+    <select id="situacao" name="situacao"><option value="">Todas</option>
+      {% for valor, rotulo in situacoes %}<option value="{{ valor }}"{% if valor == situacao %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+    </select></p>
+  <p><label for="autor">Autor</label>
+    <select id="autor" name="autor"><option value="">Todos</option>
+      {% for v in autores %}<option value="{{ v.pk }}"{% if v.pk|stringformat:"s" == autor %} selected{% endif %}>{{ v.nome_parlamentar }}</option>{% endfor %}
+    </select></p>
+  <p><button type="submit">Filtrar</button></p>
+</form>
+{% include "portal/_exportar.html" %}
+<div class="tabela-rolagem">
+<table>
+  <caption class="meta">{{ pagina.paginator.count }} matéria(s)</caption>
+  <thead><tr><th scope="col">Matéria</th><th scope="col">Ementa</th><th scope="col">Autoria</th><th scope="col">Situação</th></tr></thead>
+  <tbody>
+  {% for m in pagina %}
+    <tr>
+      <td><a href="{% url 'materia' m.pk %}">{{ m }}</a><br><span class="meta">{{ m.data_apresentacao|date:"d/m/Y" }}</span></td>
+      <td>{{ m.ementa|truncatewords:30 }}</td>
+      <td>{{ m.autoria }}</td>
+      <td>{{ m.get_situacao_display }}</td>
+    </tr>
+  {% empty %}<tr><td colspan="4">Nenhuma matéria encontrada.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "portal/_paginacao.html" %}
+{% endblock %}

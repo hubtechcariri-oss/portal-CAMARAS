@@ -1,0 +1,5 @@
+<p><label for="tipo">Tipo</label>
+  <select id="tipo" name="tipo"><option value="">Todos</option>
+    {% for valor, rotulo in tipos %}<option value="{{ valor }}"{% if valor == tipo %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+  </select></p>
+<p><label for="ano">Ano</label><input type="text" inputmode="numeric" id="ano" name="ano" value="{{ ano }}" size="4"></p>

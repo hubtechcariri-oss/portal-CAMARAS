@@ -1,0 +1,26 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ materia }} · {% endblock %}
+{% block conteudo %}
+<p class="meta"><a href="{% url 'materias' %}">Matérias</a></p>
+<h1>{{ materia }}</h1>
+<dl>
+  <dt>Ementa</dt><dd>{{ materia.ementa }}</dd>
+  <dt>Apresentada em</dt><dd>{{ materia.data_apresentacao|date:"d/m/Y" }}</dd>
+  {% if materia.autoria %}<dt>Autoria</dt><dd>{% for v in materia.autores.all %}<a href="{% url 'vereador' v.pk %}">{{ v.nome_parlamentar }}</a>{% if not forloop.last or materia.autor_externo %}, {% endif %}{% endfor %}{{ materia.autor_externo }}</dd>{% endif %}
+  <dt>Situação</dt><dd>{{ materia.get_situacao_display }}</dd>
+  {% if materia.norma_gerada and materia.norma_gerada.publicada %}<dt>Norma gerada</dt><dd><a href="{% url 'normas' %}?tipo={{ materia.norma_gerada.tipo }}&amp;ano={{ materia.norma_gerada.ano }}">{{ materia.norma_gerada }}</a></dd>{% endif %}
+</dl>
+{% if materia.arquivo %}<p><a class="botao" href="{{ materia.arquivo.url }}">Baixar texto integral</a></p>{% endif %}
+
+<h2>Tramitação</h2>
+{% if tramitacoes %}
+<ol>
+  {% for t in tramitacoes %}
+  <li><time datetime="{{ t.data|date:'Y-m-d' }}">{{ t.data|date:"d/m/Y" }}</time>: {{ t.descricao }}
+    {% if t.sessao and t.sessao.publicada %} (<a href="{% url 'sessao' t.sessao.pk %}">{{ t.sessao }}</a>){% endif %}
+    {% if t.resultado %}<strong>{{ t.get_resultado_display }}</strong>{% if t.votos_sim is not None %}: {{ t.votos_sim }} sim, {{ t.votos_nao|default_if_none:"0" }} não, {{ t.abstencoes|default_if_none:"0" }} abstenção(ões){% endif %}{% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% else %}<p>Sem andamentos registrados.</p>{% endif %}
+{% endblock %}

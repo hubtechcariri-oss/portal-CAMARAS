@@ -5,7 +5,10 @@ from datetime import date
 from django.core.management.base import BaseCommand
 
 from apps.camaras.models import Camara, Dominio
-from apps.legislativo.models import Legislatura, Norma, Vereador
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+from apps.legislativo.models import Legislatura, Materia, Norma, Sessao, Tramitacao, Vereador
 from apps.noticias.models import Noticia
 from apps.transparencia.models import CategoriaTransparencia, Documento
 
@@ -28,6 +31,7 @@ class Command(BaseCommand):
             encarregado_lgpd="Encarregado de Dados, encarregado@exemplo.leg.br",
         )
         Dominio.objects.create(camara=camara, host=host, principal=True)
+        vereadores = []
         leg = Legislatura.objects.create(camara=camara, numero=20, inicio=date(2025, 1, 1), fim=date(2028, 12, 31))
         for nome, partido, cargo in [
             ("Ana Souza", "Partido A", "Presidente"), ("Bruno Lima", "Partido B", "Vice-Presidente"),
@@ -36,6 +40,21 @@ class Command(BaseCommand):
         ]:
             v = Vereador.objects.create(camara=camara, nome_parlamentar=nome, partido=partido, cargo_mesa=cargo)
             v.legislaturas.add(leg)
+            vereadores.append(v)
+        sessao = Sessao.objects.create(camara=camara, numero=32, legislatura=leg,
+                                       data_hora=datetime(2026, 10, 7, 9, tzinfo=ZoneInfo("America/Sao_Paulo")),
+                                       video_url="https://www.youtube.com/")
+        sessao.presentes.set(vereadores[:4])
+        pl = Materia.objects.create(camara=camara, tipo="pl", numero=45, ano=2026, data_apresentacao=date(2026, 9, 1),
+                                    ementa="Institui o programa de coleta seletiva nas escolas municipais.",
+                                    situacao=Materia.Situacao.APROVADA)
+        pl.autores.set(vereadores[2:4])
+        Tramitacao.objects.create(materia=pl, data=date(2026, 9, 2), descricao="Lida em plenário e encaminhada à CCJ")
+        Tramitacao.objects.create(materia=pl, data=date(2026, 10, 7), descricao="Votação em turno único",
+                                  sessao=sessao, resultado="aprov", votos_sim=4, votos_nao=0, abstencoes=0)
+        Materia.objects.create(camara=camara, tipo="req", numero=12, ano=2026, data_apresentacao=date(2026, 10, 1),
+                               ementa="Requer ao Poder Executivo informações sobre o transporte escolar.",
+                               autor_externo="Mesa Diretora")
         Norma.objects.create(camara=camara, tipo="lei", numero="1.234", ano=2026, data=date(2026, 3, 10),
                              ementa="Dispõe sobre a denominação de logradouros públicos no bairro Centro.")
         Norma.objects.create(camara=camara, tipo="res", numero="15", ano=2026, data=date(2026, 6, 2),

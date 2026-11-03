@@ -12,7 +12,7 @@ class PedidoForm(forms.ModelForm):
 
     class Meta:
         model = Pedido
-        fields = ["nome", "email", "pedido"]
+        fields = ["nome", "email", "pedido", "anexo"]
         widgets = {"pedido": forms.Textarea(attrs={"rows": 6})}
         labels = {"pedido": "Descreva a informação solicitada"}
 

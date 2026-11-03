@@ -13,6 +13,13 @@
   <p class="meta">Registrado em {{ pedido.criado_em|date:"d/m/Y" }} · Prazo {{ pedido.prazo|date:"d/m/Y" }} · Situação: <strong>{{ pedido.get_situacao_display }}</strong></p>
   <h3>Pedido</h3>{{ pedido.pedido|linebreaks }}
   {% if pedido.resposta %}<h3>Resposta</h3>{{ pedido.resposta|linebreaks }}{% endif %}
+  {% if pedido.anexo or pedido.anexo_resposta %}
+  <h3>Anexos</h3>
+  <ul>
+    {% if pedido.anexo %}<li><a href="{% url 'esic:anexo' 'anexo' %}?protocolo={{ pedido.protocolo|urlencode }}&amp;codigo={{ pedido.codigo_consulta|urlencode }}">Arquivo enviado por você</a></li>{% endif %}
+    {% if pedido.anexo_resposta %}<li><a href="{% url 'esic:anexo' 'anexo_resposta' %}?protocolo={{ pedido.protocolo|urlencode }}&amp;codigo={{ pedido.codigo_consulta|urlencode }}">Arquivo da resposta</a></li>{% endif %}
+  </ul>
+  {% endif %}
 </section>
 {% endif %}
 {% endblock %}

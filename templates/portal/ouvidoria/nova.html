@@ -5,7 +5,7 @@
 <p>Envie reclamações, denúncias, sugestões, elogios ou solicitações sobre os serviços da Câmara. A resposta sai em até 30 dias, prorrogáveis uma vez por igual período (Lei nº 13.460/2017, art. 16).</p>
 <p>Quer uma informação ou um documento público? Use o <a href="{% url 'esic:novo' %}">e-SIC</a>. Já fez uma manifestação? <a href="{% url 'ouvidoria:consulta' %}">Acompanhe aqui</a>.</p>
 
-<form method="post" novalidate>
+<form method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="erro" role="alert">{{ form.non_field_errors }}</div>{% endif %}
 
@@ -18,6 +18,7 @@
     </div>
     <p>{{ form.assunto.label_tag }}{{ form.assunto }}{{ form.assunto.errors }}</p>
     <p>{{ form.descricao.label_tag }}{{ form.descricao }}{{ form.descricao.errors }}</p>
+    <p>{{ form.anexo.label_tag }}{{ form.anexo }}<br><span class="meta">{{ form.anexo.help_text }}</span>{{ form.anexo.errors }}</p>
   </fieldset>
 
   <fieldset class="cartao" style="margin-top:16px">

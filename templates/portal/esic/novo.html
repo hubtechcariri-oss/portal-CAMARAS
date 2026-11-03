@@ -4,7 +4,7 @@
 <h1>Pedido de acesso à informação (e-SIC)</h1>
 <p>Qualquer pessoa pode pedir informações à Câmara, sem precisar explicar o motivo (Lei nº 12.527/2011, art. 10). O prazo de resposta é de até 20 dias, prorrogável por mais 10 com justificativa.</p>
 <p>Já fez um pedido? <a href="{% url 'esic:consulta' %}">Acompanhe aqui</a>.</p>
-<form method="post" novalidate>
+<form method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="erro" role="alert">{{ form.non_field_errors }}</div>{% endif %}
   {% for campo in form %}
@@ -12,6 +12,8 @@
       <p class="campo-oculto" aria-hidden="true">{{ campo.label_tag }}{{ campo }}</p>
     {% elif campo.name == "ciente_privacidade" %}
       <p>{{ campo }} <label for="{{ campo.id_for_label }}" style="display:inline;font-weight:400">{{ campo.label }} <a href="{% url 'privacidade' %}">Ler o aviso</a>.</label>{{ campo.errors }}</p>
+    {% elif campo.name == "anexo" %}
+      <p>{{ campo.label_tag }}{{ campo }}<br><span class="meta">{{ campo.help_text }}</span>{{ campo.errors }}</p>
     {% else %}
       <p>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}</p>
     {% endif %}

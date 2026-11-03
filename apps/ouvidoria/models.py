@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.anexos import DICA, VALIDADORES, CaminhoAnexo, obter_armazenamento
 from apps.camaras.protocolo import codigo_consulta, salvar_com_protocolo
 
 
@@ -33,6 +34,10 @@ class Manifestacao(ModeloDaCamara):
     tipo = models.CharField(max_length=12, choices=Tipo.choices)
     assunto = models.CharField(max_length=200)
     descricao = models.TextField("descrição")
+    anexo = models.FileField(
+        "anexo do manifestante", upload_to=CaminhoAnexo("ouvidoria"), storage=obter_armazenamento,
+        validators=VALIDADORES, blank=True, help_text=DICA,
+    )
     anonima = models.BooleanField(
         "anônima", default=False,
         help_text="Sem identificação. O acompanhamento é só pelo protocolo e código.",
@@ -48,6 +53,10 @@ class Manifestacao(ModeloDaCamara):
     prazo = models.DateField(editable=False)
     prorrogada = models.BooleanField(default=False, editable=False)
     resposta = models.TextField(blank=True, help_text="Resposta conclusiva, visível ao cidadão na consulta.")
+    anexo_resposta = models.FileField(
+        "anexo da resposta", upload_to=CaminhoAnexo("ouvidoria"), storage=obter_armazenamento,
+        validators=VALIDADORES, blank=True, help_text=DICA,
+    )
     respondida_em = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:

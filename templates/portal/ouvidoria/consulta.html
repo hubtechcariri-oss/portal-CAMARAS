@@ -13,6 +13,13 @@
   <p class="meta">Registrada em {{ manifestacao.criado_em|date:"d/m/Y" }} · Prazo {{ manifestacao.prazo|date:"d/m/Y" }} · Situação: <strong>{{ manifestacao.get_situacao_display }}</strong></p>
   <h3>{{ manifestacao.assunto }}</h3>{{ manifestacao.descricao|linebreaks }}
   {% if manifestacao.resposta %}<h3>Resposta da Ouvidoria</h3>{{ manifestacao.resposta|linebreaks }}{% endif %}
+  {% if manifestacao.anexo or manifestacao.anexo_resposta %}
+  <h3>Anexos</h3>
+  <ul>
+    {% if manifestacao.anexo %}<li><a href="{% url 'ouvidoria:anexo' 'anexo' %}?protocolo={{ manifestacao.protocolo|urlencode }}&amp;codigo={{ manifestacao.codigo_consulta|urlencode }}">Arquivo enviado por você</a></li>{% endif %}
+    {% if manifestacao.anexo_resposta %}<li><a href="{% url 'ouvidoria:anexo' 'anexo_resposta' %}?protocolo={{ manifestacao.protocolo|urlencode }}&amp;codigo={{ manifestacao.codigo_consulta|urlencode }}">Arquivo da resposta</a></li>{% endif %}
+  </ul>
+  {% endif %}
 </section>
 {% endif %}
 {% endblock %}

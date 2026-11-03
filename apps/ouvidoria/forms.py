@@ -12,7 +12,7 @@ class ManifestacaoForm(forms.ModelForm):
 
     class Meta:
         model = Manifestacao
-        fields = ["tipo", "assunto", "descricao", "anonima", "nome", "email", "telefone", "sigilo"]
+        fields = ["tipo", "assunto", "descricao", "anexo", "anonima", "nome", "email", "telefone", "sigilo"]
         widgets = {
             "descricao": forms.Textarea(attrs={"rows": 6}),
         }

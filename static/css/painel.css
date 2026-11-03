@@ -279,3 +279,31 @@ summary:focus-visible, [tabindex]:focus-visible, .button:focus-visible {
 }
 /* O CSS responsivo do Django fixa a largura em 100vw; no cartão isso estoura a tela. */
 .form-duas-colunas .aligned .form-row > div { width: auto; max-width: 100%; }
+
+/* ---------------------------------------------------------------------------
+   Editor de texto rico (tarefa 6, Trix): barra reduzida, claro e escuro.
+   --------------------------------------------------------------------------- */
+.editor-texto { flex: 1; min-width: 0; }
+.editor-texto trix-toolbar .trix-button-row { flex-wrap: wrap; gap: var(--esp-2); }
+.editor-texto trix-toolbar .trix-button-group { margin: 0; border-color: var(--campo-borda); border-radius: var(--raio-campo); overflow: hidden; }
+.editor-texto trix-toolbar .trix-button { min-height: 40px; min-width: 40px; border-color: var(--cartao-borda); background: var(--campo-fundo); }
+.editor-texto trix-toolbar .trix-button.trix-active { background: var(--estado-neutro-fundo); box-shadow: inset 0 -3px 0 var(--foco-cor); }
+.editor-texto trix-toolbar .trix-button:not(:disabled):hover { background: var(--estado-neutro-fundo); }
+.editor-texto trix-toolbar .trix-button:focus-visible { outline-offset: -3px; }
+.editor-texto trix-toolbar .trix-dialog { background: var(--painel-cartao); color: var(--body-fg); border-color: var(--campo-borda); border-radius: var(--raio-campo); box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+.editor-texto trix-toolbar .trix-input--dialog { background: var(--campo-fundo); color: var(--body-fg); border: 1px solid var(--campo-borda); border-radius: var(--raio-campo); min-height: var(--alvo-minimo); }
+.editor-texto__area { min-height: 280px; max-height: 70vh; overflow-y: auto; margin-top: var(--esp-2); padding: 12px 14px;
+  background: var(--campo-fundo); color: var(--body-fg); border: 1px solid var(--campo-borda); border-radius: var(--raio-campo); font-size: var(--fs-corpo); line-height: 1.6; }
+.editor-texto__area:focus { outline: var(--foco-anel) solid var(--foco-cor); outline-offset: 2px; }
+.editor-texto__area h1 { font-size: 1.25rem; font-weight: 700; color: var(--texto-titulo); margin: .6em 0 .3em; }
+.editor-texto__area blockquote { border-left: 4px solid var(--campo-borda); margin: .6em 0; padding-left: .8em; color: var(--texto-apoio); }
+.editor-texto__area a { color: var(--link-fg); }
+form .aligned .editor-texto__area ul, form .aligned .editor-texto__area ol, .editor-texto__area ul, .editor-texto__area ol { margin: 0 0 .6em; padding-left: 1.6em; }
+.editor-texto__area ul li { list-style: disc; } .editor-texto__area ol li { list-style: decimal; }
+.editor-texto__area li { padding: 0; margin: 0 0 .2em; font-size: inherit; line-height: inherit; }
+.editor-texto__area blockquote { font-size: inherit; font-style: italic; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .editor-texto trix-toolbar .trix-button--icon::before { filter: invert(1); opacity: .9; }
+  html:not([data-theme="light"]) .editor-texto__area:focus { outline-color: var(--foco-cor); }
+}
+html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { filter: invert(1); opacity: .9; }

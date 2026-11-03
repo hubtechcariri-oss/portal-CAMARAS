@@ -4,6 +4,8 @@ from django.utils.html import format_html
 
 from apps.camaras.admin_mixins import AdminDaCamara, FormDaCamara, SituacaoPublicacaoFilter, selo_publicacao
 from apps.camaras.midia import previa
+from apps.camaras.texto_rico import limpar_html, tem_texto
+from apps.camaras.widgets import EditorTexto
 
 from .models import Noticia
 
@@ -29,7 +31,14 @@ class NoticiaForm(FormDaCamara):
             "titulo": forms.TextInput(attrs={"class": "campo-largo"}),
             "resumo": forms.Textarea(attrs={"rows": 3, "class": "campo-largo", "data-contador": "300"}),
             "texto_alternativo": forms.TextInput(attrs={"class": "campo-largo"}),
+            "corpo": EditorTexto(attrs={"aria_label": "Texto da notícia"}),
         }
+
+    def clean_corpo(self):
+        corpo = limpar_html(self.cleaned_data.get("corpo", ""))
+        if not tem_texto(corpo):
+            raise forms.ValidationError("Escreva o texto da notícia.")
+        return corpo
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

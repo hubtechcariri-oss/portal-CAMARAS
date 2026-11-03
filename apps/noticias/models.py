@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from apps.camaras.models import ModeloDaCamara
 from apps.camaras.midia import CaminhoMidia, ImagemPadronizada
+from apps.camaras.texto_rico import eh_html, limpar_html
 
 
 class Noticia(ModeloDaCamara):
@@ -25,3 +26,9 @@ class Noticia(ModeloDaCamara):
 
     def __str__(self):
         return self.titulo
+
+    def save(self, *args, **kwargs):
+        # Defesa extra: o HTML vindo do editor (ou de qualquer outra origem) é limpo antes de gravar.
+        if eh_html(self.corpo):
+            self.corpo = limpar_html(self.corpo)
+        super().save(*args, **kwargs)

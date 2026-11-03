@@ -1,0 +1,37 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Ouvidoria · {% endblock %}
+{% block conteudo %}
+<h1>Ouvidoria</h1>
+<p>Envie reclamações, denúncias, sugestões, elogios ou solicitações sobre os serviços da Câmara. A resposta sai em até 30 dias, prorrogáveis uma vez por igual período (Lei nº 13.460/2017, art. 16).</p>
+<p>Quer uma informação ou um documento público? Use o <a href="{% url 'esic:novo' %}">e-SIC</a>. Já fez uma manifestação? <a href="{% url 'ouvidoria:consulta' %}">Acompanhe aqui</a>.</p>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="erro" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <fieldset class="cartao">
+    <legend>Sua manifestação</legend>
+    <div role="radiogroup" aria-labelledby="rotulo-tipo">
+      <p id="rotulo-tipo"><strong>{{ form.tipo.label }}</strong></p>
+      {% for opcao in form.tipo %}<p style="margin:0 0 4px">{{ opcao.tag }} <label for="{{ opcao.id_for_label }}" style="display:inline;font-weight:400">{{ opcao.choice_label }}</label></p>{% endfor %}
+      {{ form.tipo.errors }}
+    </div>
+    <p>{{ form.assunto.label_tag }}{{ form.assunto }}{{ form.assunto.errors }}</p>
+    <p>{{ form.descricao.label_tag }}{{ form.descricao }}{{ form.descricao.errors }}</p>
+  </fieldset>
+
+  <fieldset class="cartao" style="margin-top:16px">
+    <legend>Identificação</legend>
+    <p>{{ form.anonima }} <label for="{{ form.anonima.id_for_label }}" style="display:inline">{{ form.anonima.label }}</label></p>
+    <p class="meta">Manifestações anônimas são aceitas, mas a Câmara não poderá pedir mais detalhes nem avisar você. Acompanhe pelo protocolo e código que aparecerão ao final.</p>
+    <p>{{ form.nome.label_tag }}{{ form.nome }}{{ form.nome.errors }}</p>
+    <p>{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</p>
+    <p>{{ form.telefone.label_tag }}{{ form.telefone }}{{ form.telefone.errors }}</p>
+    <p>{{ form.sigilo }} <label for="{{ form.sigilo.id_for_label }}" style="display:inline">{{ form.sigilo.label }}</label> <span class="meta">({{ form.sigilo.help_text }})</span></p>
+  </fieldset>
+
+  <p class="campo-oculto" aria-hidden="true">{{ form.site.label_tag }}{{ form.site }}</p>
+  <p style="margin-top:16px">{{ form.ciente_privacidade }} <label for="{{ form.ciente_privacidade.id_for_label }}" style="display:inline;font-weight:400">{{ form.ciente_privacidade.label }} <a href="{% url 'privacidade' %}">Ler o aviso</a>.</label>{{ form.ciente_privacidade.errors }}</p>
+  <p><button type="submit">Enviar manifestação</button></p>
+</form>
+{% endblock %}

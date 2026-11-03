@@ -36,6 +36,6 @@ class BuscaNormasTests(TestCase):
 
     def test_paginas_publicas_respondem(self):
         for url in ["/", "/vereadores/", "/legislacao/", "/noticias/", "/transparencia/",
-                    "/transparencia/contratos/", "/esic/", "/esic/consulta/", "/acessibilidade/", "/privacidade/"]:
+                    "/transparencia/contratos/", "/esic/", "/esic/consulta/", "/ouvidoria/", "/ouvidoria/consulta/", "/acessibilidade/", "/privacidade/"]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url, HTTP_HOST="camara-a.test").status_code, 200)

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.noticias",
     "apps.transparencia",
     "apps.esic",
+    "apps.ouvidoria",
 ]
 
 MIDDLEWARE = [
@@ -113,3 +114,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Prazos da Ouvidoria (Lei 13.460/2017, art. 16): 30 dias, prorrogáveis uma vez por mais 30.
+OUVIDORIA_PRAZO_DIAS = 30
+OUVIDORIA_PRORROGACAO_DIAS = 30

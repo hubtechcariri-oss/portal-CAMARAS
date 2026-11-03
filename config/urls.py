@@ -28,6 +28,7 @@ urlpatterns = [
     path("transparencia/", transparencia.indice, name="transparencia"),
     path("transparencia/<slug:slug>/", transparencia.categoria, name="transparencia_categoria"),
     path("esic/", include("apps.esic.urls")),
+    path("ouvidoria/", include("apps.ouvidoria.urls")),
 ]
 
 if settings.DEBUG:

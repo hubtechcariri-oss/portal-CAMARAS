@@ -1,11 +1,11 @@
-import secrets
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 
 from apps.camaras.models import ModeloDaCamara
+from apps.camaras.protocolo import codigo_consulta, salvar_com_protocolo
 
 
 class Pedido(ModeloDaCamara):
@@ -56,21 +56,7 @@ class Pedido(ModeloDaCamara):
             self.respondido_em = timezone.now()
         if self.pk:
             return super().save(*args, **kwargs)
-        hoje = timezone.localdate()
         # Prazo em dias corridos. Confirmar a regra de contagem na regulamentação local da LAI.
-        self.prazo = hoje + timedelta(days=settings.ESIC_PRAZO_DIAS)
-        self.codigo_consulta = secrets.token_hex(4).upper()
-        with transaction.atomic():
-            # Trava por câmara para gerar protocolos sequenciais sem colisão.
-            from apps.camaras.models import Camara
-
-            Camara.objects.select_for_update().get(pk=self.camara_id)
-            ultimo = (
-                Pedido.objects.filter(camara_id=self.camara_id, protocolo__startswith=str(hoje.year))
-                .order_by("-protocolo")
-                .values_list("protocolo", flat=True)
-                .first()
-            )
-            seq = int(ultimo[4:]) + 1 if ultimo else 1
-            self.protocolo = f"{hoje.year}{seq:05d}"
-            return super().save(*args, **kwargs)
+        self.prazo = timezone.localdate() + timedelta(days=settings.ESIC_PRAZO_DIAS)
+        self.codigo_consulta = codigo_consulta()
+        return salvar_com_protocolo(self, lambda: super(Pedido, self).save(*args, **kwargs))

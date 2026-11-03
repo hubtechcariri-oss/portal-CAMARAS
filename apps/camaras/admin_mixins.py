@@ -86,3 +86,65 @@ class FormDaCamara(forms.ModelForm):
 
 
 AdminDaCamara.form = FormDaCamara
+
+
+class PrazoFilter(admin.SimpleListFilter):
+    """Filas de atendimento (e-SIC, Ouvidoria): em aberto ou com prazo vencido.
+
+    O modelo precisa ter `ABERTAS` (situações que ainda pedem resposta) e `prazo`.
+    É o mesmo critério dos cartões do Início, então o número do cartão bate com a lista.
+    """
+
+    title = "prazo"
+    parameter_name = "prazo"
+
+    def lookups(self, request, model_admin):
+        return [("abertas", "Em aberto"), ("vencidas", "Prazo vencido")]
+
+    def queryset(self, request, queryset):
+        from django.utils import timezone
+
+        if self.value() not in ("abertas", "vencidas"):
+            return queryset
+        abertas = queryset.filter(situacao__in=queryset.model.ABERTAS)
+        if self.value() == "vencidas":
+            return abertas.filter(prazo__lt=timezone.localdate())
+        return abertas
+
+
+ALERTA_DIAS = 5  # "vence em breve": prazo nos próximos 5 dias
+
+
+def texto_do_prazo(dias):
+    if dias == 0:
+        return "vence hoje"
+    if dias == 1:
+        return "vence amanhã"
+    return f"vence em {dias} dias"
+
+
+class FilaDeAtendimentoMixin:
+    """Filas do e-SIC e da Ouvidoria.
+
+    - Ao filtrar por prazo, a lista vem ordenada pelo prazo mais próximo (o mais urgente primeiro).
+    - A coluna "prazo" mostra o estado em texto (selo), não só um ícone colorido.
+    """
+
+    @admin.display(description="situação do prazo", ordering="prazo")
+    def selo_prazo(self, obj):
+        from django.utils import timezone
+        from django.utils.html import format_html
+
+        if obj.situacao not in obj.ABERTAS:
+            return format_html('<span class="selo selo--ok">{}</span>', "Encerrado")
+        dias = (obj.prazo - timezone.localdate()).days
+        if dias < 0:
+            return format_html('<span class="selo selo--critico">Vencido há {} dia{}</span>', -dias, "s" if dias < -1 else "")
+        if dias <= ALERTA_DIAS:
+            return format_html('<span class="selo selo--atencao">{}</span>', texto_do_prazo(dias).capitalize())
+        return format_html('<span class="selo selo--neutro">{}</span>', "No prazo")
+
+    def get_ordering(self, request):
+        if request.GET.get(PrazoFilter.parameter_name) in ("abertas", "vencidas"):
+            return ["prazo", "pk"]
+        return super().get_ordering(request)

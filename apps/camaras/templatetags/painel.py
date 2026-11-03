@@ -6,11 +6,9 @@ from django import template
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
-from apps.camaras.admin_mixins import camaras_do_usuario
+from apps.camaras.admin_mixins import ALERTA_DIAS, camaras_do_usuario, texto_do_prazo
 
 register = template.Library()
-
-ALERTA_DIAS = 5  # "vence em breve": prazo nos próximos 5 dias
 
 ATALHOS = [
     # (permissão, rótulo, url name, ícone)
@@ -46,19 +44,38 @@ def painel_camara(context):
     return camara_do_painel(request.user)
 
 
-def _fila(modelo, abertas, usuario, url_name, rotulo):
+def _fila(modelo, usuario, url_name, rotulo):
+    """Resumo de uma fila de atendimento, com o mesmo critério do filtro "Em aberto" da lista."""
     if not usuario.has_perm(f"{modelo._meta.app_label}.view_{modelo._meta.model_name}"):
         return None
     hoje = timezone.localdate()
-    qs = modelo.objects.filter(situacao__in=abertas)
+    qs = modelo.objects.filter(situacao__in=modelo.ABERTAS)
     if not usuario.is_superuser:
         qs = qs.filter(camara__in=camaras_do_usuario(usuario))
+    abertas = qs.count()
+    vencidas = qs.filter(prazo__lt=hoje).count()
+    vencendo = qs.filter(prazo__gte=hoje, prazo__lte=hoje + timedelta(days=ALERTA_DIAS)).count()
+    proximo = qs.filter(prazo__gte=hoje).order_by("prazo").values_list("prazo", flat=True).first()
+
+    # Estado sempre em texto (não só cor). Verde ("em dia") só quando não há nada pendente.
+    if not abertas:
+        estado, rotulo_estado = "ok", "Em dia"
+    elif vencidas:
+        estado, rotulo_estado = "critico", "Crítico"
+    elif vencendo:
+        estado, rotulo_estado = "atencao", "Atenção"
+    else:
+        estado, rotulo_estado = "neutro", "Em andamento"
+
     return {
         "rotulo": rotulo,
-        "abertas": qs.count(),
-        "vencidas": qs.filter(prazo__lt=hoje).count(),
-        "vencendo": qs.filter(prazo__gte=hoje, prazo__lte=hoje + timedelta(days=ALERTA_DIAS)).count(),
-        "url": reverse(url_name),
+        "abertas": abertas,
+        "vencidas": vencidas,
+        "vencendo": vencendo,
+        "proximo": texto_do_prazo((proximo - hoje).days) if proximo else "",
+        "estado": estado,
+        "rotulo_estado": rotulo_estado,
+        "url": reverse(url_name) + "?prazo=abertas",
     }
 
 
@@ -69,10 +86,8 @@ def painel_resumo(context):
 
     usuario = context["request"].user
     filas = [
-        _fila(Pedido, ["recebido", "analise", "prorrogado"], usuario, "admin:esic_pedido_changelist",
-              "Pedidos de informação (e-SIC)"),
-        _fila(Manifestacao, list(Manifestacao.ABERTAS), usuario, "admin:ouvidoria_manifestacao_changelist",
-              "Manifestações da Ouvidoria"),
+        _fila(Pedido, usuario, "admin:esic_pedido_changelist", "Pedidos de informação (e-SIC)"),
+        _fila(Manifestacao, usuario, "admin:ouvidoria_manifestacao_changelist", "Manifestações da Ouvidoria"),
     ]
     atalhos = []
     for perm, rotulo, nome, icone in ATALHOS:

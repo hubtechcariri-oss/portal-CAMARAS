@@ -11,14 +11,21 @@
     <h2 id="t-pendencias" class="painel-titulo">Atendimento ao cidadão</h2>
     <div class="painel-filas">
       {% for f in resumo.filas %}
-      <a class="painel-fila{% if f.vencidas %} painel-fila--alerta{% elif f.vencendo %} painel-fila--atencao{% endif %}" href="{{ f.url }}">
+      <a class="painel-fila painel-fila--{{ f.estado }}" href="{{ f.url }}"
+         aria-label="{{ f.rotulo }}: {{ f.abertas }} em aberto. Situação: {{ f.rotulo_estado }}. Abrir a lista ordenada por prazo.">
         <span class="painel-fila__rotulo">{{ f.rotulo }}</span>
         <span class="painel-fila__numero">{{ f.abertas }}</span>
         <span class="painel-fila__detalhe">
-          em aberto
-          {% if f.vencidas %}· <strong>{{ f.vencidas }} com prazo vencido</strong>{% endif %}
-          {% if f.vencendo %}· {{ f.vencendo }} vence{{ f.vencendo|pluralize:"m" }} em até {{ resumo.alerta_dias }} dias{% endif %}
-          {% if not f.abertas %}· tudo em dia{% endif %}
+          <span class="selo selo--{{ f.estado }}">{{ f.rotulo_estado }}</span>
+          <span class="painel-fila__itens">
+          {% if f.abertas %}
+            <span class="painel-fila__item">{{ f.abertas }} em aberto</span>
+            {% if f.vencidas %}<strong class="painel-fila__item">{{ f.vencidas }} com prazo vencido</strong>{% endif %}
+            {% if f.proximo %}<span class="painel-fila__item">próximo {{ f.proximo }}</span>{% endif %}
+          {% else %}
+            <span class="painel-fila__item">nada aguardando resposta</span>
+          {% endif %}
+          </span>
         </span>
       </a>
       {% endfor %}

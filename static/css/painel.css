@@ -147,15 +147,26 @@ div.breadcrumbs { padding: 10px 32px; }
 .painel-bloco { margin-bottom: 24px; }
 .painel-titulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--body-quiet-color); margin: 0 0 10px; padding: 0; background: none; font-weight: 700; }
 .painel-filas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.painel-fila { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 16px 18px; border-radius: var(--painel-raio); background: var(--painel-cartao); border: 1px solid var(--hairline-color); border-left: 5px solid #2e8b57; text-decoration: none !important; color: var(--body-fg) !important; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.painel-fila { display: grid; grid-template-columns: 1fr auto; gap: var(--esp-2) var(--esp-3); padding: var(--esp-4) var(--esp-5); min-height: var(--alvo-minimo); border-radius: var(--raio-cartao); background: var(--painel-cartao); border: 1px solid var(--cartao-borda); border-left: 6px solid var(--campo-borda); text-decoration: none !important; color: var(--body-fg) !important; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
 .painel-fila:hover { border-color: var(--painel-cor); }
-.painel-fila--atencao { border-left-color: var(--painel-destaque); }
-.painel-fila--alerta { border-left-color: #c0392b; }
-.painel-fila__rotulo { font-weight: 600; }
-.painel-fila__numero { grid-row: span 2; font-size: 2rem; font-weight: 700; color: var(--link-fg); align-self: center; }
-.painel-fila--alerta .painel-fila__numero { color: #c0392b; }
-.painel-fila__detalhe { font-size: .8rem; color: var(--body-quiet-color); }
-.painel-fila--alerta strong { color: #c0392b; }
+.painel-fila--ok { border-left-color: var(--estado-ok-texto); }
+.painel-fila--neutro { border-left-color: var(--estado-neutro-texto); }
+.painel-fila--atencao { border-left-color: var(--estado-atencao-texto); }
+.painel-fila--critico { border-left-color: var(--estado-critico); }
+.painel-fila__rotulo { font-size: var(--fs-cartao); font-weight: 700; color: var(--texto-titulo); }
+.painel-fila__numero { grid-row: span 2; font-size: var(--fs-indicador); font-weight: 700; line-height: 1; color: var(--texto-titulo); align-self: center; font-variant-numeric: tabular-nums; }
+.painel-fila--critico .painel-fila__numero { color: var(--estado-critico); }
+.painel-fila__detalhe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2); font-size: var(--fs-apoio); color: var(--texto-apoio); }
+.painel-fila--critico strong { color: var(--estado-critico); }
+.painel-fila__itens { display: inline; }
+.painel-fila__item + .painel-fila__item::before { content: "·"; margin: 0 6px; color: var(--texto-apoio); }
+
+/* Selos de estado: sempre com texto, a cor só reforça. */
+.selo { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: var(--raio-selo); font-size: var(--fs-apoio); font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.selo--ok { background: var(--estado-ok-fundo); color: var(--estado-ok-texto); }
+.selo--neutro { background: var(--estado-neutro-fundo); color: var(--estado-neutro-texto); }
+.selo--atencao { background: var(--estado-atencao-fundo); color: var(--estado-atencao-texto); }
+.selo--critico { background: var(--estado-critico-fundo); color: var(--estado-critico); }
 .painel-atalhos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; list-style: none; margin: 0; padding: 0; }
 .painel-atalhos li { list-style: none; padding: 0; }
 .painel-atalhos a { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 16px 10px; border-radius: var(--painel-raio); background: var(--painel-cartao); border: 1px solid var(--hairline-color); font-weight: 600; font-size: .82rem; color: var(--body-fg) !important; text-decoration: none !important; line-height: 1.25; transition: border-color .15s, transform .15s; }
@@ -211,7 +222,7 @@ summary:focus-visible, [tabindex]:focus-visible, .button:focus-visible {
   display: inline-flex; align-items: center; justify-content: center;
 }
 .submit-row a.deletelink { height: auto; }
-.module, fieldset.module, #changelist .results, .painel-fila, .painel-atalhos a { border-color: var(--cartao-borda); }
+.module, fieldset.module, #changelist .results, .painel-atalhos a { border-color: var(--cartao-borda); }
 .module, .submit-row, #changelist-filter, .painel-fila, .painel-atalhos a { border-radius: var(--raio-cartao); }
 
 /* ---------------------------------------------------------------------------

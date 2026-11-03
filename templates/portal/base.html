@@ -1,0 +1,67 @@
+{% load static %}<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{% endblock %}{{ camara.nome }}</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+  <style>:root { --cor-primaria: {{ camara.cor_primaria|default:"#0b4f8a" }}; }</style>
+</head>
+<body>
+  <ul class="atalhos">
+    <li><a href="#conteudo" accesskey="1">Ir para o conteúdo [1]</a></li>
+    <li><a href="#menu" accesskey="2">Ir para o menu [2]</a></li>
+    <li><a href="#rodape" accesskey="4">Ir para o rodapé [4]</a></li>
+  </ul>
+
+  <div class="barra-acessibilidade" role="region" aria-label="Recursos de acessibilidade">
+    <div class="container">
+      <a href="{% url 'transparencia' %}">Transparência</a>
+      <a href="{% url 'esic:novo' %}">e-SIC</a>
+      <a href="{% url 'acessibilidade' %}">Acessibilidade</a>
+      <button type="button" data-acao="contraste" aria-pressed="false">Alto contraste</button>
+      <button type="button" data-acao="aumentar" aria-label="Aumentar fonte">A+</button>
+      <button type="button" data-acao="diminuir" aria-label="Diminuir fonte">A−</button>
+    </div>
+  </div>
+
+  <header class="cabecalho">
+    <div class="container">
+      <a class="marca" href="{% url 'inicio' %}">{{ camara.nome }}<span>{{ camara.municipio }}/{{ camara.uf }}</span></a>
+    </div>
+    <nav id="menu" aria-label="Menu principal">
+      <ul class="container">
+        <li><a href="{% url 'inicio' %}">Início</a></li>
+        <li><a href="{% url 'vereadores' %}">Vereadores</a></li>
+        <li><a href="{% url 'normas' %}">Legislação</a></li>
+        <li><a href="{% url 'noticias' %}">Notícias</a></li>
+        <li><a href="{% url 'transparencia' %}">Transparência</a></li>
+        <li><a href="{% url 'esic:novo' %}">Acesso à Informação</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="conteudo" class="container" tabindex="-1">
+    {% block conteudo %}{% endblock %}
+  </main>
+
+  <footer id="rodape" class="rodape">
+    <div class="container">
+      <p><strong>{{ camara.nome }}</strong></p>
+      {% if camara.cnpj %}<p>CNPJ {{ camara.cnpj }}</p>{% endif %}
+      {% if camara.endereco %}<p>{{ camara.endereco }}</p>{% endif %}
+      {% if camara.horario_atendimento %}<p>Atendimento: {{ camara.horario_atendimento }}</p>{% endif %}
+      <p>{% if camara.telefone %}{{ camara.telefone }}{% endif %}{% if camara.telefone and camara.email %} · {% endif %}{% if camara.email %}<a href="mailto:{{ camara.email }}">{{ camara.email }}</a>{% endif %}</p>
+      <p><a href="{% url 'privacidade' %}">Privacidade e proteção de dados</a> · <a href="{% url 'acessibilidade' %}">Acessibilidade</a></p>
+    </div>
+  </footer>
+
+  <!-- VLibras: tradutor de Libras do Governo Federal -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
+  <script src="{% static 'js/acessibilidade.js' %}" defer></script>
+</body>
+</html>

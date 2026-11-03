@@ -1,0 +1,14 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ vereador.nome_parlamentar }} · {% endblock %}
+{% block conteudo %}
+<h1>{{ vereador.nome_parlamentar }}</h1>
+{% if vereador.foto %}<img src="{{ vereador.foto.url }}" alt="Foto de {{ vereador.nome_parlamentar }}" width="240">{% endif %}
+<dl>
+  {% if vereador.nome_civil %}<dt>Nome civil</dt><dd>{{ vereador.nome_civil }}</dd>{% endif %}
+  {% if vereador.partido %}<dt>Partido</dt><dd>{{ vereador.partido }}</dd>{% endif %}
+  {% if vereador.cargo_mesa %}<dt>Mesa Diretora</dt><dd>{{ vereador.cargo_mesa }}</dd>{% endif %}
+  {% if vereador.email %}<dt>E-mail</dt><dd><a href="mailto:{{ vereador.email }}">{{ vereador.email }}</a></dd>{% endif %}
+  {% with legs=vereador.legislaturas.all %}{% if legs %}<dt>Legislaturas</dt><dd>{{ legs|join:", " }}</dd>{% endif %}{% endwith %}
+</dl>
+{% if vereador.biografia %}<h2>Biografia</h2>{{ vereador.biografia|linebreaks }}{% endif %}
+{% endblock %}

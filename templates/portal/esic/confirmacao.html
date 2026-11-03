@@ -1,0 +1,11 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Pedido registrado · {% endblock %}
+{% block conteudo %}
+<h1>Pedido registrado</h1>
+<div class="aviso" role="status">
+  <p>Protocolo: <strong>{{ pedido.protocolo }}</strong></p>
+  <p>Código de consulta: <strong>{{ pedido.codigo_consulta }}</strong></p>
+  <p>Prazo para resposta: <strong>{{ pedido.prazo|date:"d/m/Y" }}</strong></p>
+</div>
+<p>Anote o protocolo e o código: os dois são necessários para <a href="{% url 'esic:consulta' %}">acompanhar o pedido</a>.</p>
+{% endblock %}

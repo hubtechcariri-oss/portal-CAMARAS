@@ -1,0 +1,11 @@
+{% if vereadores %}
+<ul class="grade">
+  {% for v in vereadores %}
+  <li class="cartao">
+    {% if v.foto %}<img src="{{ v.foto.url }}" alt="Foto de {{ v.nome_parlamentar }}">{% endif %}
+    <h3><a href="{% url 'vereador' v.pk %}">{{ v.nome_parlamentar }}</a></h3>
+    <p class="meta">{{ v.partido }}{% if v.cargo_mesa %} · {{ v.cargo_mesa }}{% endif %}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}<p>Nenhum vereador cadastrado.</p>{% endif %}

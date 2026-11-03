@@ -1,0 +1,17 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Transparência · {% endblock %}
+{% block conteudo %}
+<h1>Portal da Transparência</h1>
+<p>Informações publicadas em cumprimento à Lei de Acesso à Informação (Lei nº 12.527/2011) e à Lei de Responsabilidade Fiscal (LC nº 101/2000). Não encontrou o que procura? <a href="{% url 'esic:novo' %}">Faça um pedido pelo e-SIC</a>.</p>
+{% for g in grupos %}
+<section aria-labelledby="g{{ g.pk }}">
+  <h2 id="g{{ g.pk }}">{{ g.nome }}</h2>
+  <ul>
+    {% for c in g.categorias.all %}
+    <li><a href="{% url 'transparencia_categoria' c.slug %}">{{ c.nome }}</a>
+      <span class="meta">({{ c.total }})</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% endblock %}

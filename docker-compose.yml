@@ -1,0 +1,25 @@
+# Ambiente de desenvolvimento: docker compose up, depois
+#   docker compose exec web python manage.py migrate
+#   docker compose exec web python manage.py criar_demo
+#   docker compose exec web python manage.py createsuperuser
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: portal
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+    volumes: [dados:/var/lib/postgresql/data]
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_DEBUG: "true"
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_HOST: db
+    ports: ["8000:8000"]
+    volumes: [".:/app"]
+    depends_on: [db]
+volumes:
+  dados:

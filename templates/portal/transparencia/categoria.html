@@ -1,0 +1,27 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ categoria.nome }} · {% endblock %}
+{% block conteudo %}
+<p class="meta"><a href="{% url 'transparencia' %}">Transparência</a> › {{ categoria.grupo }}</p>
+<h1>{{ categoria.nome }}</h1>
+{% if categoria.descricao %}<p>{{ categoria.descricao }}</p>{% endif %}
+{% if categoria.base_legal %}<p class="meta">Base legal: {{ categoria.base_legal }}</p>{% endif %}
+{% include "portal/_exportar.html" %}
+<div class="tabela-rolagem">
+<table>
+  <thead><tr><th scope="col">Título</th><th scope="col">Data</th><th scope="col">Competência</th><th scope="col">Valor</th><th scope="col">Acesso</th></tr></thead>
+  <tbody>
+  {% for d in pagina %}
+    <tr>
+      <td>{{ d.titulo }}{% if d.numero %} (nº {{ d.numero }}){% endif %}{% if d.descricao %}<br><span class="meta">{{ d.descricao }}</span>{% endif %}</td>
+      <td>{{ d.data|date:"d/m/Y" }}</td>
+      <td>{{ d.competencia }}</td>
+      <td>{% if d.valor is not None %}R$ {{ d.valor }}{% endif %}</td>
+      <td>{% if d.arquivo %}<a href="{{ d.arquivo.url }}">Arquivo</a>{% endif %}
+          {% if d.link_externo %}<a href="{{ d.link_externo }}" rel="noopener">Consultar</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="5">Nenhuma informação publicada nesta categoria.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "portal/_paginacao.html" %}
+{% endblock %}

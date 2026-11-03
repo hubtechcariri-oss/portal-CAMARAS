@@ -1,0 +1,10 @@
+{% extends "portal/base.html" %}
+{% block titulo %}{{ noticia.titulo }} · {% endblock %}
+{% block conteudo %}
+<article>
+  <h1>{{ noticia.titulo }}</h1>
+  <p class="meta"><time datetime="{{ noticia.publicada_em|date:'c' }}">{{ noticia.publicada_em|date:"d/m/Y H:i" }}</time></p>
+  {% if noticia.imagem %}<img src="{{ noticia.imagem.url }}" alt="{{ noticia.texto_alternativo }}" style="max-width:100%;height:auto">{% endif %}
+  {{ noticia.corpo|linebreaks }}
+</article>
+{% endblock %}

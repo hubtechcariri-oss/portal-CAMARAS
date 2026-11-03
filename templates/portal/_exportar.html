@@ -1,0 +1,4 @@
+<p class="meta">Dados abertos:
+  <a href="?{% for k, v in request.GET.items %}{% if k != 'pagina' and k != 'formato' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}formato=csv">baixar CSV</a> ·
+  <a href="?{% for k, v in request.GET.items %}{% if k != 'pagina' and k != 'formato' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}formato=json">baixar JSON</a>
+</p>

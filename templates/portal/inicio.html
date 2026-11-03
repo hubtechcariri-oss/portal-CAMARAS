@@ -1,0 +1,35 @@
+{% extends "portal/base.html" %}
+{% block conteudo %}
+<h1>{{ camara.nome }}</h1>
+
+<section aria-labelledby="t-acesso">
+  <h2 id="t-acesso">Acesso rápido</h2>
+  <ul class="grade">
+    <li class="cartao"><a href="{% url 'transparencia' %}">Portal da Transparência</a></li>
+    <li class="cartao"><a href="{% url 'normas' %}">Legislação municipal</a></li>
+    <li class="cartao"><a href="{% url 'vereadores' %}">Vereadores</a></li>
+    <li class="cartao"><a href="{% url 'esic:novo' %}">Pedir informação (e-SIC)</a></li>
+  </ul>
+</section>
+
+<section aria-labelledby="t-noticias">
+  <h2 id="t-noticias">Notícias</h2>
+  {% if noticias %}
+  <ul class="grade">
+    {% for n in noticias %}
+    <li class="cartao">
+      {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.texto_alternativo }}">{% endif %}
+      <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"d/m/Y" }}</time></p>
+      <h3><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h3>
+    </li>
+    {% endfor %}
+  </ul>
+  <p><a href="{% url 'noticias' %}">Todas as notícias</a></p>
+  {% else %}<p>Nenhuma notícia publicada.</p>{% endif %}
+</section>
+
+<section aria-labelledby="t-vereadores">
+  <h2 id="t-vereadores">Vereadores</h2>
+  {% include "portal/vereadores/_grade.html" %}
+</section>
+{% endblock %}

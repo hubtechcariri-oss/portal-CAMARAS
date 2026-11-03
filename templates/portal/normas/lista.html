@@ -1,0 +1,28 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Legislação · {% endblock %}
+{% block conteudo %}
+<h1>Legislação municipal</h1>
+<form method="get" class="filtros" role="search">
+  <p><label for="q">Buscar no texto</label><input type="search" id="q" name="q" value="{{ termo }}"></p>
+  <p><label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo"><option value="">Todos</option>
+      {% for valor, rotulo in tipos %}<option value="{{ valor }}"{% if valor == tipo %} selected{% endif %}>{{ rotulo }}</option>{% endfor %}
+    </select></p>
+  <p><label for="ano">Ano</label><input type="text" inputmode="numeric" id="ano" name="ano" value="{{ ano }}" size="4"></p>
+  <p><button type="submit">Filtrar</button></p>
+</form>
+{% include "portal/_exportar.html" %}
+<div class="tabela-rolagem">
+<table>
+  <caption class="meta">{{ pagina.paginator.count }} norma(s) encontrada(s)</caption>
+  <thead><tr><th scope="col">Norma</th><th scope="col">Data</th><th scope="col">Ementa</th><th scope="col">Arquivo</th></tr></thead>
+  <tbody>
+  {% for n in pagina %}
+    <tr><td>{{ n }}</td><td>{{ n.data|date:"d/m/Y" }}</td><td>{{ n.ementa }}</td>
+      <td>{% if n.arquivo %}<a href="{{ n.arquivo.url }}">PDF<span class="campo-oculto"> de {{ n }}</span></a>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="4">Nenhuma norma encontrada.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "portal/_paginacao.html" %}
+{% endblock %}

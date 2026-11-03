@@ -1,0 +1,14 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Privacidade · {% endblock %}
+{% block conteudo %}
+<h1>Privacidade e proteção de dados</h1>
+<p>A {{ camara.nome }} trata dados pessoais conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
+<h2>Quais dados coletamos</h2>
+<ul>
+  <li><strong>Pedidos de informação (e-SIC):</strong> nome e e-mail, usados apenas para identificar o pedido e enviar a resposta, como prevê a Lei de Acesso à Informação (art. 10). Base legal: cumprimento de obrigação legal (LGPD, art. 7º, II).</li>
+</ul>
+<h2>Cookies</h2>
+<p>Este portal usa apenas um cookie técnico de sessão, necessário para o funcionamento dos formulários. Não usamos cookies de publicidade nem de rastreamento. As preferências de acessibilidade (contraste e fonte) ficam guardadas apenas no seu navegador.</p>
+<h2>Seus direitos</h2>
+<p>Você pode pedir acesso, correção ou eliminação dos seus dados, nos limites da lei.{% if camara.encarregado_lgpd %} Encarregado pelo tratamento de dados: {{ camara.encarregado_lgpd }}.{% endif %}{% if camara.email %} Contato: <a href="mailto:{{ camara.email }}">{{ camara.email }}</a>.{% endif %}</p>
+{% endblock %}

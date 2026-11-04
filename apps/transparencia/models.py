@@ -74,3 +74,80 @@ class Documento(ModeloDaCamara):
 
     def __str__(self):
         return self.titulo
+
+
+class Licitacao(ModeloDaCamara):
+    """Contratação (licitação, dispensa, inexigibilidade…) importada de uma fonte externa, como o PNCP."""
+
+    origem = models.CharField(max_length=20, default="pncp", editable=False)
+    id_origem = models.CharField(
+        "identificador na origem", max_length=60, editable=False,
+        help_text="No PNCP, o número de controle (ex.: 00000000000100-1-000001/2026).",
+    )
+    numero = models.CharField("número", max_length=40, blank=True)
+    ano = models.PositiveIntegerField()
+    processo = models.CharField(max_length=60, blank=True)
+    modalidade = models.CharField(max_length=60)
+    situacao = models.CharField("situação", max_length=60, blank=True)
+    objeto = models.TextField()
+    valor_estimado = models.DecimalField("valor estimado", max_digits=16, decimal_places=2, null=True, blank=True)
+    valor_homologado = models.DecimalField("valor homologado", max_digits=16, decimal_places=2, null=True, blank=True)
+    abertura_propostas = models.DateTimeField("abertura das propostas", null=True, blank=True)
+    publicada_em = models.DateTimeField("publicada na origem em")
+    link_origem = models.URLField("link na origem", max_length=500, blank=True)
+    link_sistema = models.URLField("link no sistema de compras", max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "licitação"
+        verbose_name_plural = "licitações"
+        ordering = ["-publicada_em"]
+        unique_together = [("camara", "origem", "id_origem")]
+        indexes = [models.Index(fields=["camara", "ano", "modalidade"])]
+
+    def __str__(self):
+        return f"{self.modalidade} nº {self.numero}/{self.ano}" if self.numero else f"{self.modalidade} {self.ano}"
+
+
+class Contrato(ModeloDaCamara):
+    """Contrato ou empenho com força de contrato, importado de uma fonte externa, como o PNCP."""
+
+    origem = models.CharField(max_length=20, default="pncp", editable=False)
+    id_origem = models.CharField("identificador na origem", max_length=60, editable=False)
+    licitacao = models.ForeignKey(
+        Licitacao, verbose_name="licitação", on_delete=models.SET_NULL, null=True, blank=True, related_name="contratos",
+    )
+    numero = models.CharField("número", max_length=60, blank=True)
+    ano = models.PositiveIntegerField()
+    processo = models.CharField(max_length=60, blank=True)
+    tipo = models.CharField(max_length=60, blank=True)
+    objeto = models.TextField()
+    fornecedor = models.CharField(max_length=255)
+    fornecedor_documento = models.CharField(
+        "CPF/CNPJ do fornecedor", max_length=20, blank=True,
+        help_text="CPF aparece mascarado no portal (LGPD).",
+    )
+    valor_inicial = models.DecimalField("valor inicial", max_digits=16, decimal_places=2, null=True, blank=True)
+    valor_global = models.DecimalField("valor global", max_digits=16, decimal_places=2, null=True, blank=True)
+    assinatura = models.DateField(null=True, blank=True)
+    vigencia_inicio = models.DateField("início da vigência", null=True, blank=True)
+    vigencia_fim = models.DateField("fim da vigência", null=True, blank=True)
+    publicado_em = models.DateTimeField("publicado na origem em")
+    link_origem = models.URLField("link na origem", max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["-assinatura", "-publicado_em"]
+        unique_together = [("camara", "origem", "id_origem")]
+        indexes = [models.Index(fields=["camara", "ano"])]
+
+    def __str__(self):
+        return f"Contrato nº {self.numero}" if self.numero else f"Contrato {self.ano}"
+
+    @property
+    def fornecedor_documento_publico(self):
+        """CNPJ inteiro; CPF com os dígitos do meio escondidos, como recomenda a LGPD."""
+        d = "".join(c for c in self.fornecedor_documento if c.isdigit())
+        if len(d) == 14:
+            return f"{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}"
+        if len(d) == 11:
+            return f"***.{d[3:6]}.{d[6:9]}-**"
+        return self.fornecedor_documento

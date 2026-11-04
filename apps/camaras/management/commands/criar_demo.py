@@ -80,6 +80,7 @@ class Command(BaseCommand):
             self.garantir_atendimento(existente.camara)
             self.garantir_transparencia(existente.camara)
             self.garantir_legislativo(existente.camara)
+            self.garantir_fonte_pncp(existente.camara)
             self.stdout.write(f"A câmara de demonstração já existe ({', '.join(hosts)}). Visual conferido.")
             return
         host = hosts[0]
@@ -130,6 +131,7 @@ class Command(BaseCommand):
         self.garantir_atendimento(camara)
         self.garantir_transparencia(camara)
         self.garantir_legislativo(camara)
+        self.garantir_fonte_pncp(camara)
         self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em: {', '.join(hosts)}"))
 
     def garantir_visual(self, camara):
@@ -246,6 +248,17 @@ class Command(BaseCommand):
             if categoria and not Documento.objects.da_camara(camara).filter(categoria=categoria).exists():
                 Documento.objects.create(camara=camara, categoria=categoria, titulo=titulo,
                                          data=hoje - timedelta(days=dias), descricao="Documento de exemplo.")
+
+    def garantir_fonte_pncp(self, camara):
+        """Fonte PNCP apontando para uma câmara real (Aratuba-CE), só para demonstrar a importação.
+
+        Para importar: `python manage.py importar_dados --tipo pncp`, ou "Importar agora" no painel.
+        """
+        from apps.integracoes.models import FonteDados
+
+        FonteDados.objects.get_or_create(camara=camara, tipo="pncp", defaults={
+            "configuracao": {"cnpj": "06580377000143"},
+        })
 
     def garantir_legislativo(self, camara):
         """Matérias e sessões ao longo do ano, para o bloco de produção legislativa ter números."""

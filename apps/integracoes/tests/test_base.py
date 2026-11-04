@@ -121,8 +121,22 @@ class PainelTests(TestCase):
 
     @com_conector_falso
     def test_acao_importar_agora(self):
-        r = self.client.post("/admin/integracoes/fontedados/", {"action": "importar_agora", "_selected_action": [self.fa.pk]},
-                             HTTP_HOST="camara-a.test", follow=True)
-        self.assertContains(r, "3 novos e 1 atualizados")
+        # Em teste, roda na mesma thread (a transação do TestCase não é vista por outra thread).
+        sincrono = lambda ids: [executar(f) for f in FonteDados.objects.filter(pk__in=ids)]  # noqa: E731
+        with mock.patch.object(conectores, "executar_em_segundo_plano", side_effect=sincrono):
+            r = self.client.post("/admin/integracoes/fontedados/",
+                                 {"action": "importar_agora", "_selected_action": [self.fa.pk]},
+                                 HTTP_HOST="camara-a.test", follow=True)
+        self.assertContains(r, "Importação iniciada")
+        self.assertEqual(self.fa.importacoes.first().novos, 3)
         r = self.client.get(f"/admin/integracoes/fontedados/{self.fa.pk}/change/", HTTP_HOST="camara-a.test")
         self.assertContains(r, "Últimas importações")
+
+    def test_nao_inicia_duas_vezes_a_mesma_fonte(self):
+        Importacao.objects.create(fonte=self.fa, desde=date(2026, 1, 1))  # rodando
+        with mock.patch.object(conectores, "executar_em_segundo_plano") as iniciar:
+            r = self.client.post("/admin/integracoes/fontedados/",
+                                 {"action": "importar_agora", "_selected_action": [self.fa.pk]},
+                                 HTTP_HOST="camara-a.test", follow=True)
+        iniciar.assert_not_called()
+        self.assertContains(r, "já há uma importação em andamento")

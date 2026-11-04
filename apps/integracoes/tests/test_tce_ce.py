@@ -91,6 +91,13 @@ class AuxiliaresTests(TestCase):
                 mock.patch.object(tce_ce.time, "sleep"):
             self.assertEqual(tce_ce._get("orgaos", {}), [1])
 
+    def test_sem_resposta_desiste_logo_com_mensagem_clara(self):
+        from urllib.error import URLError
+        with mock.patch.object(tce_ce, "urlopen", side_effect=URLError("timed out")) as abrir, \
+                mock.patch.object(tce_ce.time, "sleep"), self.assertRaisesMessage(ErroDeImportacao, "fora do Brasil"):
+            tce_ce._get("orgaos", {})
+        self.assertEqual(abrir.call_count, 2)
+
     def test_orgao_pelo_cnpj_e_pelo_tipo_legislativo(self):
         with mock.patch.object(tce_ce, "buscar", return_value=ORGAOS):
             self.assertEqual(tce_ce.codigo_orgao("017", 2026, CNPJ, {}), "11")

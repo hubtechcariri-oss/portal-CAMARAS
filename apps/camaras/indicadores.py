@@ -240,3 +240,30 @@ def legislativo(usuario):
                         "url": reverse("admin:legislativo_norma_changelist") + f"?ano={ano}"})
 
     return {"ano": ano, "numeros": numeros, "tipos": tipos, "serie": serie}
+
+
+# ---------------------------------------------------------------------------
+# Integrações: fontes de dados com falha ou sem atualizar
+# ---------------------------------------------------------------------------
+
+def integracoes(usuario):
+    """Fontes ativas cuja última importação falhou ou que estão há dias sem sucesso."""
+    from django.urls import reverse
+
+    from apps.integracoes.models import FonteDados, Importacao
+
+    if not _pode_ver(usuario, FonteDados):
+        return None
+    problemas = []
+    for fonte in _escopo(FonteDados.objects.filter(ativa=True), usuario).select_related("camara"):
+        ultima = fonte.importacoes.first()
+        if ultima and ultima.situacao == Importacao.Situacao.ERRO:
+            detalhe = ultima.mensagem.splitlines()[0][:160] if ultima.mensagem else "Erro sem mensagem."
+        elif fonte.atrasada:
+            detalhe = ("Nunca foi importada." if not fonte.ultimo_sucesso else
+                       f"Sem atualizar desde {timezone.localtime(fonte.ultimo_sucesso):%d/%m/%Y}.")
+        else:
+            continue
+        problemas.append({"fonte": str(fonte), "camara": fonte.camara.nome, "detalhe": detalhe,
+                          "url": reverse("admin:integracoes_fontedados_change", args=[fonte.pk])})
+    return problemas

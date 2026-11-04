@@ -361,6 +361,7 @@ html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { 
    Gráficos só com HTML e CSS (sem biblioteca), com tabela para leitores de tela.
    --------------------------------------------------------------------------- */
 .painel-secao { margin-bottom: var(--esp-4); }
+.painel-alerta { border-left: 5px solid var(--estado-critico); }
 .cartao__periodo { white-space: nowrap; font-size: var(--fs-apoio); font-weight: 600; color: var(--texto-apoio); margin-left: var(--esp-2); }
 .painel-secao__grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--esp-4); }
 .metricas { border: 1px solid var(--cartao-borda); border-radius: var(--raio-campo); padding: var(--esp-4); min-width: 0; }

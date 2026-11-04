@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.esic",
     "apps.ouvidoria",
     "apps.conteudo",
+    "apps.integracoes",
 ]
 
 MIDDLEWARE = [

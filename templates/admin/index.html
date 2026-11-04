@@ -34,6 +34,21 @@
   </section>
   {% endif %}
 
+  {% painel_dashboard as dashboard %}
+  {% if dashboard.integracoes %}
+  <section class="cartao painel-secao painel-alerta" aria-labelledby="t-integracoes">
+    <h2 id="t-integracoes" class="cartao__titulo">Fontes de dados com problema</h2>
+    <ul class="lista-linhas">
+      {% for p in dashboard.integracoes %}
+      <li><a href="{{ p.url }}">
+        <span class="lista-linhas__texto"><strong>{{ p.fonte }}</strong><span class="lista-linhas__apoio">{{ p.camara }} · {{ p.detalhe }}</span></span>
+        <span class="selo selo--critico">Verificar</span>
+      </a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
   <div class="inicio__colunas">
     <div class="inicio__coluna">
       {% if inicio.prazos is not None %}
@@ -104,7 +119,6 @@
     </div>
   </div>
 
-  {% painel_dashboard as dashboard %}
   {% if dashboard.atendimento %}{% include "admin/inicio/atendimento.html" with filas=dashboard.atendimento %}{% endif %}
   {% if dashboard.transparencia %}{% include "admin/inicio/transparencia.html" with t=dashboard.transparencia %}{% endif %}
   {% if dashboard.legislativo %}{% include "admin/inicio/legislativo.html" with l=dashboard.legislativo %}{% endif %}

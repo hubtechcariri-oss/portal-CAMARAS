@@ -24,8 +24,10 @@ from . import Conector, ErroDeImportacao, Resultado, registrar
 BASE = "https://pncp.gov.br/api/consulta/v1/"
 # Máximo de registros por página que a API aceita em cada consulta (acima disso, HTTP 400).
 TAMANHO_PAGINA = {"contratacoes/publicacao": 50, "contratos": 500}
-JANELA_DIAS = 30            # a API recusa (HTTP 422) períodos maiores que 365 dias
-TENTATIVAS = 3
+JANELA_DIAS = 180           # a API recusa (HTTP 422) períodos acima de 365 dias; janelas maiores ficam lentas
+TENTATIVAS = 5
+INTERVALO = 0.5             # pausa entre requisições: o PNCP limita o ritmo (HTTP 429)
+ESPERA_MAXIMA = 60          # segundos, ao obedecer o Retry-After
 FUSO = ZoneInfo("America/Sao_Paulo")
 
 MODALIDADES = {
@@ -70,10 +72,16 @@ def janelas(desde, ate, dias=JANELA_DIAS):
 
 
 def buscar_json(caminho, parametros):
-    """GET na API. Devolve o JSON, ou None quando não há dados (HTTP 204). Tenta de novo em falhas de rede."""
+    """GET na API. Devolve o JSON, ou None quando não há dados (HTTP 204).
+
+    Tenta de novo em falhas de rede, erros 5xx e no limite de requisições (429), esperando
+    o tempo que a API pedir no Retry-After.
+    """
     url = BASE + caminho + "?" + urlencode(parametros)
     requisicao = Request(url, headers={"Accept": "application/json", "User-Agent": "PortalDasCamaras/1.0"})
     for tentativa in range(1, TENTATIVAS + 1):
+        time.sleep(INTERVALO)
+        espera = 2 ** tentativa
         try:
             with urlopen(requisicao, timeout=60) as resposta:
                 corpo = resposta.read()
@@ -81,12 +89,22 @@ def buscar_json(caminho, parametros):
         except HTTPError as erro:
             if erro.code == 204:
                 return None
-            if erro.code < 500 or tentativa == TENTATIVAS:
+            repetivel = erro.code == 429 or erro.code >= 500
+            if not repetivel or tentativa == TENTATIVAS:
                 raise ErroDeImportacao(f"O PNCP respondeu {erro.code} em {caminho}{_motivo(erro)}.") from erro
+            if erro.code == 429:
+                espera = max(_retry_after(erro), 5 * tentativa)
         except (URLError, TimeoutError) as erro:
             if tentativa == TENTATIVAS:
                 raise ErroDeImportacao(f"Não foi possível acessar o PNCP ({erro}).") from erro
-        time.sleep(2 * tentativa)
+        time.sleep(min(espera, ESPERA_MAXIMA))
+
+
+def _retry_after(erro):
+    try:
+        return int((erro.headers or {}).get("Retry-After") or 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _motivo(erro):

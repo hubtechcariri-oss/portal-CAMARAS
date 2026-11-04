@@ -51,8 +51,8 @@ def api_falsa(chamadas):
 
 
 class JanelasTests(TestCase):
-    def test_divide_em_periodos_de_30_dias_sem_buracos(self):
-        j = list(pncp.janelas(date(2026, 1, 1), date(2026, 3, 5)))
+    def test_divide_em_periodos_sem_buracos(self):
+        j = list(pncp.janelas(date(2026, 1, 1), date(2026, 3, 5), dias=30))
         self.assertEqual(j[0], (date(2026, 1, 1), date(2026, 1, 30)))
         self.assertEqual(j[1][0], date(2026, 1, 31))
         self.assertEqual(j[-1][1], date(2026, 3, 5))
@@ -72,6 +72,22 @@ class PaginasTests(TestCase):
         erro = HTTPError("u", 400, "Bad Request", {}, corpo)
         with mock.patch.object(pncp, "urlopen", side_effect=erro), \
                 self.assertRaisesMessage(ErroDeImportacao, "400 em contratos: Tamanho de página inválido"):
+            pncp.buscar_json("contratos", {})
+
+    def test_limite_de_requisicoes_espera_e_tenta_de_novo(self):
+        ok = mock.MagicMock()
+        ok.__enter__.return_value.read.return_value = b'{"data": [1], "totalPaginas": 1}'
+        ok.__enter__.return_value.status = 200
+        erro = HTTPError("u", 429, "Too Many Requests", {"Retry-After": "7"}, None)
+        with mock.patch.object(pncp, "urlopen", side_effect=[erro, ok]), \
+                mock.patch.object(pncp.time, "sleep") as dormir:
+            self.assertEqual(pncp.buscar_json("contratos", {}), {"data": [1], "totalPaginas": 1})
+        self.assertIn(mock.call(7), dormir.call_args_list)
+
+    def test_desiste_do_429_depois_das_tentativas(self):
+        erro = HTTPError("u", 429, "Too Many Requests", {}, None)
+        with mock.patch.object(pncp, "urlopen", side_effect=erro), mock.patch.object(pncp.time, "sleep"), \
+                self.assertRaisesMessage(ErroDeImportacao, "429"):
             pncp.buscar_json("contratos", {})
 
     def test_tamanho_de_pagina_respeita_o_limite_de_cada_consulta(self):

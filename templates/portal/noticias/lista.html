@@ -1,13 +1,59 @@
 {% extends "portal/base.html" %}
+{% load l10n %}
 {% block titulo %}Notícias · {% endblock %}
+{% block topo %}
+<section class="topo-pagina" aria-labelledby="noticias-titulo">
+  <div class="container">
+    <p class="topo-pagina__trilha"><a href="{% url 'inicio' %}">Início</a> › Notícias</p>
+    <h1 id="noticias-titulo">Notícias</h1>
+    <p class="topo-pagina__intro">Acompanhe as sessões, os projetos em pauta e as ações da {{ camara.nome }}.</p>
+    <form class="noticias-filtro" method="get" role="search">
+      <div class="busca-grande">
+        <label for="q" class="visualmente-oculto">Buscar nas notícias</label>
+        {% include "portal/icones/busca.svg" %}
+        <input type="search" id="q" name="q" value="{{ termo }}" placeholder="Buscar nas notícias">
+      </div>
+      {% if anos|length > 1 %}
+      <label for="ano" class="visualmente-oculto">Ano</label>
+      <select id="ano" name="ano"><option value="">Todos os anos</option>
+        {% for a in anos %}<option value="{{ a|unlocalize }}"{% if a|stringformat:"d" == ano %} selected{% endif %}>{{ a|unlocalize }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      <button type="submit">Buscar</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
 {% block conteudo %}
-<h1>Notícias</h1>
-{% for n in pagina %}
-<article class="cartao" style="margin-bottom:16px">
-  <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"d/m/Y" }}</time></p>
-  <h2><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h2>
-  {% if n.resumo %}<p>{{ n.resumo }}</p>{% endif %}
+{% if filtrando %}
+<p class="meta" role="status">{{ total }} notícia{{ total|pluralize }} encontrada{{ total|pluralize }}{% if termo %} para “{{ termo }}”{% endif %}{% if ano %} em {{ ano }}{% endif %} · <a href="{% url 'noticias' %}">ver todas</a></p>
+{% endif %}
+
+{% if destaque %}
+<article class="noticia-destaque">
+  <a class="noticia-destaque__imagem" href="{% url 'noticia' destaque.slug %}" tabindex="-1" aria-hidden="true">
+    {% if destaque.imagem %}<img src="{{ destaque.imagem.url }}" alt="">{% else %}<span class="noticia-cartao__sem-imagem">{% include "portal/icones/noticia.svg" %}</span>{% endif %}
+  </a>
+  <div class="noticia-destaque__corpo">
+    <span class="selo">Mais recente</span>
+    <h2><a href="{% url 'noticia' destaque.slug %}">{{ destaque.titulo }}</a></h2>
+    <p class="meta"><time datetime="{{ destaque.publicada_em|date:'c' }}">{{ destaque.publicada_em|date:"j" }} de {{ destaque.publicada_em|date:"F"|lower }} de {{ destaque.publicada_em|date:"Y" }}</time></p>
+    {% if destaque.resumo %}<p class="noticia-destaque__resumo">{{ destaque.resumo }}</p>{% endif %}
+    <a class="botao" href="{% url 'noticia' destaque.slug %}">Ler notícia<span class="visualmente-oculto">: {{ destaque.titulo }}</span></a>
+  </div>
 </article>
-{% empty %}<p>Nenhuma notícia publicada.</p>{% endfor %}
+{% endif %}
+
+{% if itens %}
+<ul class="noticias-grade">
+  {% for n in itens %}<li>{% include "portal/noticias/_cartao.html" %}</li>{% endfor %}
+</ul>
+{% elif not destaque %}
+<div class="vazio">
+  {% include "portal/icones/noticia.svg" %}
+  <p>{% if filtrando %}Nenhuma notícia encontrada. Tente outras palavras ou <a href="{% url 'noticias' %}">veja todas</a>.{% else %}Nenhuma notícia publicada ainda.{% endif %}</p>
+</div>
+{% endif %}
 {% include "portal/_paginacao.html" %}
 {% endblock %}

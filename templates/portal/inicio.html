@@ -60,14 +60,7 @@
     <ul class="noticias-grade">
       {% for n in noticias %}
       <li>
-        <article class="noticia-cartao">
-          {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.texto_alternativo }}" loading="lazy">{% else %}<div class="noticia-cartao__sem-imagem"></div>{% endif %}
-          <div class="noticia-cartao__corpo">
-            <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"d/m/Y" }}</time></p>
-            <h3><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h3>
-            {% if n.resumo %}<p>{{ n.resumo }}</p>{% endif %}
-          </div>
-        </article>
+        {% include "portal/noticias/_cartao.html" %}
       </li>
       {% endfor %}
     </ul>

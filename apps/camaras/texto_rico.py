@@ -51,4 +51,4 @@ def exibir(texto):
     """HTML seguro para o portal (texto antigo em texto puro continua com quebras de linha)."""
     if eh_html(texto):
         return mark_safe(limpar_html(texto))
-    return linebreaks(texto or "", autoescape=True)
+    return mark_safe(linebreaks(texto or "", autoescape=True))  # autoescape já escapou o texto

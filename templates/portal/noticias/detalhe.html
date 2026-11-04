@@ -2,10 +2,36 @@
 {% load texto_rico %}
 {% block titulo %}{{ noticia.titulo }} · {% endblock %}
 {% block conteudo %}
-<article>
-  <h1>{{ noticia.titulo }}</h1>
-  <p class="meta"><time datetime="{{ noticia.publicada_em|date:'c' }}">{{ noticia.publicada_em|date:"d/m/Y H:i" }}</time></p>
-  {% if noticia.imagem %}<img src="{{ noticia.imagem.url }}" alt="{{ noticia.texto_alternativo }}" style="max-width:100%;height:auto">{% endif %}
-  <div class="texto-rico">{{ noticia.corpo|texto_rico }}</div>
+<article class="noticia">
+  <header class="noticia__cabecalho">
+    <p class="meta"><a href="{% url 'inicio' %}">Início</a> › <a href="{% url 'noticias' %}">Notícias</a></p>
+    <h1>{{ noticia.titulo }}</h1>
+    {% if noticia.resumo %}<p class="noticia__resumo">{{ noticia.resumo }}</p>{% endif %}
+    <p class="noticia__info">
+      <time datetime="{{ noticia.publicada_em|date:'c' }}">{{ noticia.publicada_em|date:"j" }} de {{ noticia.publicada_em|date:"F"|lower }} de {{ noticia.publicada_em|date:"Y" }}, {{ noticia.publicada_em|date:"H\hi" }}</time>
+      <span aria-hidden="true">·</span> {{ minutos }} min de leitura
+    </p>
+  </header>
+  {% if noticia.imagem %}
+  <figure class="noticia__imagem">
+    <img src="{{ noticia.imagem.url }}" alt="{{ noticia.texto_alternativo }}">
+  </figure>
+  {% endif %}
+  <div class="texto-rico noticia__texto">{{ noticia.corpo|texto_rico }}</div>
+  <footer class="noticia__rodape">
+    <span>Compartilhe:</span>
+    <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ endereco|urlencode }}" rel="noopener" target="_blank">WhatsApp<span class="visualmente-oculto"> (abre em nova aba)</span></a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u={{ endereco|urlencode }}" rel="noopener" target="_blank">Facebook<span class="visualmente-oculto"> (abre em nova aba)</span></a>
+    <a href="mailto:?subject={{ noticia.titulo|urlencode }}&amp;body={{ endereco|urlencode }}">E-mail</a>
+  </footer>
 </article>
+
+{% if outras %}
+<section class="noticia__outras" aria-labelledby="outras-noticias">
+  <div class="secao__cabecalho"><h2 id="outras-noticias">Outras notícias</h2><a href="{% url 'noticias' %}">Ver todas</a></div>
+  <ul class="noticias-grade">
+    {% for n in outras %}<li>{% include "portal/noticias/_cartao.html" %}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
 {% endblock %}

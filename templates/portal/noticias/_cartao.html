@@ -1,0 +1,10 @@
+<article class="noticia-cartao">
+  <a class="noticia-cartao__imagem" href="{% url 'noticia' n.slug %}" tabindex="-1" aria-hidden="true">
+    {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="" loading="lazy">{% else %}<span class="noticia-cartao__sem-imagem">{% include "portal/icones/noticia.svg" %}</span>{% endif %}
+  </a>
+  <div class="noticia-cartao__corpo">
+    <p class="meta"><time datetime="{{ n.publicada_em|date:'c' }}">{{ n.publicada_em|date:"j" }} de {{ n.publicada_em|date:"F"|lower }} de {{ n.publicada_em|date:"Y" }}</time></p>
+    <h3><a href="{% url 'noticia' n.slug %}">{{ n.titulo }}</a></h3>
+    {% if n.resumo %}<p>{{ n.resumo|truncatechars:160 }}</p>{% endif %}
+  </div>
+</article>

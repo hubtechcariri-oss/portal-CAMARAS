@@ -1,17 +1,72 @@
 {% extends "portal/base.html" %}
 {% block titulo %}Transparência · {% endblock %}
+{% block topo %}
+<section class="transp-topo" aria-labelledby="transp-titulo">
+  <div class="container">
+    <p class="transp-topo__trilha"><a href="{% url 'inicio' %}">Início</a> › Transparência</p>
+    <h1 id="transp-titulo">Portal da Transparência</h1>
+    <p class="transp-topo__intro">Receitas, despesas, licitações, contratos, pessoal e demais informações publicadas pela {{ camara.nome }}, em cumprimento à Lei de Acesso à Informação (Lei nº 12.527/2011) e à Lei de Responsabilidade Fiscal (LC nº 101/2000).</p>
+    <form class="transp-busca" role="search" action="" onsubmit="return false">
+      <label for="transp-filtro" class="visualmente-oculto">Procurar um item da transparência</label>
+      {% include "portal/icones/busca.svg" %}
+      <input type="search" id="transp-filtro" placeholder="O que você procura? Ex.: diárias, contratos, RGF" autocomplete="off" data-filtro-transparencia>
+    </form>
+    <ul class="transp-numeros">
+      <li><strong>{{ total_publicacoes }}</strong> documento{{ total_publicacoes|pluralize }} publicado{{ total_publicacoes|pluralize }}</li>
+      {% if total_importados %}<li><strong>{{ total_importados }}</strong> registro{{ total_importados|pluralize }} de licitações e contratos (PNCP)</li>{% endif %}
+      {% if atualizado_em %}<li>Última atualização em <strong>{{ atualizado_em|date:"d/m/Y" }}</strong></li>{% endif %}
+    </ul>
+  </div>
+</section>
+{% endblock %}
+
 {% block conteudo %}
-<h1>Portal da Transparência</h1>
-<p>Informações publicadas em cumprimento à Lei de Acesso à Informação (Lei nº 12.527/2011) e à Lei de Responsabilidade Fiscal (LC nº 101/2000). Não encontrou o que procura? <a href="{% url 'esic:novo' %}">Faça um pedido pelo e-SIC</a>.</p>
-{% for g in grupos %}
-<section aria-labelledby="g{{ g.pk }}">
-  <h2 id="g{{ g.pk }}">{{ g.nome }}</h2>
-  <ul>
-    {% for c in g.categorias.all %}
-    <li><a href="{% url 'transparencia_categoria' c.slug %}">{{ c.nome }}</a>
-      <span class="meta">({{ c.total }})</span></li>
+{% if destaques %}
+<section class="transp-secao" aria-labelledby="transp-destaques" data-some-na-busca>
+  <div class="secao__cabecalho"><h2 id="transp-destaques">Mais procurados</h2></div>
+  <ul class="atalhos-rapidos transp-destaques">
+    {% for cat, icone in destaques %}
+    <li><a class="atalho" href="{% url 'transparencia_categoria' cat.slug %}">{% include icone %}{{ cat.nome }}
+      <span class="transp-contagem{% if not cat.total %} transp-contagem--vazia{% endif %}">{% if cat.total %}{{ cat.total }} ite{{ cat.total|pluralize:"m,ns" }}{% else %}sem publicação{% endif %}</span></a></li>
     {% endfor %}
   </ul>
 </section>
-{% endfor %}
+{% endif %}
+
+<section class="transp-secao" aria-labelledby="transp-catalogo">
+  <div class="secao__cabecalho"><h2 id="transp-catalogo">Todas as informações</h2></div>
+  <p class="transp-sem-resultado meta" role="status" aria-live="polite" data-sem-resultado hidden></p>
+  <div class="transp-grupos">
+    {% for g in grupos %}
+    <section class="transp-grupo" aria-labelledby="g{{ g.pk }}" data-grupo>
+      <header class="transp-grupo__cabecalho">
+        <span class="transp-grupo__icone">{% include g.icone %}</span>
+        <div>
+          <h3 id="g{{ g.pk }}">{{ g.nome }}</h3>
+          <p class="meta">{{ g.categorias.all|length }} ite{{ g.categorias.all|length|pluralize:"m,ns" }} · {{ g.total }} publicaç{{ g.total|pluralize:"ão,ões" }}</p>
+        </div>
+      </header>
+      <ul class="transp-itens">
+        {% for c in g.categorias.all %}
+        <li data-item="{{ c.nome|lower }} {{ g.nome|lower }} {{ c.base_legal|lower }}">
+          <a href="{% url 'transparencia_categoria' c.slug %}">
+            <span class="transp-itens__nome">{{ c.nome }}{% if c.base_legal %}<span class="transp-itens__lei">{{ c.base_legal }}</span>{% endif %}</span>
+            <span class="transp-contagem{% if not c.total %} transp-contagem--vazia{% endif %}">{% if c.total %}{{ c.total }}<span class="visualmente-oculto"> publicaç{{ c.total|pluralize:"ão,ões" }}</span>{% else %}sem publicação{% endif %}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </div>
+</section>
+
+<aside class="transp-ajuda" aria-labelledby="transp-ajuda">
+  {% include "portal/icones/info.svg" %}
+  <div>
+    <h2 id="transp-ajuda">Não encontrou o que procura?</h2>
+    <p>Qualquer pessoa pode pedir informações à Câmara, sem precisar dizer o motivo. A resposta sai em até 20 dias.</p>
+  </div>
+  <a class="botao" href="{% url 'esic:novo' %}">Fazer um pedido no e-SIC</a>
+</aside>
 {% endblock %}

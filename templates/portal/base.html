@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}{% endblock %}{{ camara.nome }}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=3">
   <style>:root { --cor-primaria: {{ camara.cor_primaria|default:"#0b4f8a" }}; }</style>
 </head>
 <body class="{% block classe_body %}{% endblock %}">
@@ -139,6 +139,6 @@
   </div>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
   <script src="{% static 'js/acessibilidade.js' %}" defer></script>
-  <script src="{% static 'js/portal.js' %}" defer></script>
+  <script src="{% static 'js/portal.js' %}?v=2" defer></script>
 </body>
 </html>

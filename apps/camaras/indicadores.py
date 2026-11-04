@@ -145,8 +145,13 @@ def transparencia(usuario, camara):
     pode_publicar = usuario.has_perm("transparencia.add_documento")
     url_novo = reverse("admin:transparencia_documento_add")
 
+    from apps.transparencia.importados import ultimas_datas
+
+    importados = ultimas_datas(camara)  # licitações e contratos vindos do PNCP também contam
     publicados, pendencias = 0, []
     for c in categorias:
+        if c.slug in importados:
+            c.ultima = max(filter(None, [c.ultima, importados[c.slug]]))
         if c.ultima and c.ultima >= limite:
             publicados += 1
             continue

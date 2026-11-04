@@ -1,0 +1,79 @@
+{% extends "portal/base.html" %}
+{% load l10n %}
+{% block titulo %}{{ categoria.nome }} · {% endblock %}
+{% block conteudo %}
+<p class="meta"><a href="{% url 'transparencia' %}">Transparência</a> › {{ categoria.grupo }}</p>
+<h1>{{ categoria.nome }}</h1>
+{% if categoria.descricao %}<p>{{ categoria.descricao }}</p>{% endif %}
+{% if categoria.base_legal %}<p class="meta">Base legal: {{ categoria.base_legal }}</p>{% endif %}
+<p class="meta">Dados publicados pela câmara no <a href="https://pncp.gov.br/" rel="noopener">Portal Nacional de Contratações Públicas (PNCP)</a>, atualizados automaticamente.</p>
+
+<form method="get" class="filtros" role="search">
+  <p><label for="q">Buscar</label><input type="search" id="q" name="q" value="{{ termo }}"
+     placeholder="{% if contratos %}objeto, fornecedor ou CNPJ{% else %}objeto, número, processo{% endif %}"></p>
+  {% if modalidades|length > 1 %}
+  <p><label for="modalidade">Modalidade</label>
+    <select id="modalidade" name="modalidade"><option value="">Todas</option>
+      {% for m in modalidades %}<option value="{{ m }}"{% if m == modalidade %} selected{% endif %}>{{ m }}</option>{% endfor %}
+    </select></p>
+  {% endif %}
+  <p><label for="ano">Ano</label>
+    <select id="ano" name="ano"><option value="">Todos</option>
+      {% for a in anos %}<option value="{{ a|unlocalize }}"{% if a|stringformat:"d" == ano %} selected{% endif %}>{{ a|unlocalize }}</option>{% endfor %}
+    </select></p>
+  <p><button type="submit">Filtrar</button></p>
+</form>
+
+<p class="meta" role="status">{{ total }} registro{{ total|pluralize }}{% if termo or ano or modalidade %} encontrado{{ total|pluralize }} · <a href="?">limpar filtros</a>{% endif %}</p>
+{% include "portal/_exportar.html" %}
+
+<div class="tabela-rolagem">
+<table>
+  {% if contratos %}
+  <thead><tr><th scope="col">Contrato</th><th scope="col">Objeto</th><th scope="col">Fornecedor</th>
+    <th scope="col">Valor global</th><th scope="col">Vigência</th><th scope="col">Acesso</th></tr></thead>
+  <tbody>
+  {% for c in pagina %}
+    <tr>
+      <td>{{ c.numero|default:"—" }}<br><span class="meta">{{ c.tipo }}</span></td>
+      <td>{{ c.objeto }}{% if c.licitacao %}<br><span class="meta">{{ c.licitacao }}</span>{% endif %}</td>
+      <td>{{ c.fornecedor }}<br><span class="meta">{{ c.fornecedor_documento_publico }}</span></td>
+      <td>{% if c.valor_global is not None %}R$&nbsp;{{ c.valor_global|floatformat:"2g" }}{% endif %}</td>
+      <td>{{ c.vigencia_inicio|date:"d/m/Y" }}{% if c.vigencia_fim %} a {{ c.vigencia_fim|date:"d/m/Y" }}{% endif %}</td>
+      <td>{% if c.link_origem %}<a href="{{ c.link_origem }}" rel="noopener">Ver no PNCP</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6">Nenhum contrato encontrado.</td></tr>{% endfor %}
+  </tbody>
+  {% else %}
+  <thead><tr><th scope="col">Número</th><th scope="col">Objeto</th><th scope="col">Situação</th>
+    <th scope="col">Valor estimado</th><th scope="col">Publicação</th><th scope="col">Acesso</th></tr></thead>
+  <tbody>
+  {% for l in pagina %}
+    <tr>
+      <td>{{ l.numero|default:"—" }}<br><span class="meta">{{ l.modalidade }}</span></td>
+      <td>{{ l.objeto }}{% if l.processo %}<br><span class="meta">Processo {{ l.processo }}</span>{% endif %}
+        {% if l.abertura_propostas %}<br><span class="meta">Abertura das propostas: {{ l.abertura_propostas|date:"d/m/Y H:i" }}</span>{% endif %}</td>
+      <td>{{ l.situacao }}</td>
+      <td>{% if l.valor_estimado is not None %}R$&nbsp;{{ l.valor_estimado|floatformat:"2g" }}{% endif %}
+        {% if l.valor_homologado is not None %}<br><span class="meta">homologado: R$&nbsp;{{ l.valor_homologado|floatformat:"2g" }}</span>{% endif %}</td>
+      <td>{{ l.publicada_em|date:"d/m/Y" }}</td>
+      <td>{% if l.link_origem %}<a href="{{ l.link_origem }}" rel="noopener">Ver no PNCP</a>{% endif %}
+        {% if l.link_sistema %}<br><a href="{{ l.link_sistema }}" rel="noopener">Sistema de compras</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="6">Nenhum registro encontrado.</td></tr>{% endfor %}
+  </tbody>
+  {% endif %}
+</table>
+</div>
+{% include "portal/_paginacao.html" %}
+
+{% if documentos %}
+<h2>Outros documentos</h2>
+<ul>
+  {% for d in documentos %}
+  <li>{% if d.arquivo %}<a href="{{ d.arquivo.url }}">{{ d.titulo }}</a>{% elif d.link_externo %}<a href="{{ d.link_externo }}" rel="noopener">{{ d.titulo }}</a>{% else %}{{ d.titulo }}{% endif %}
+    <span class="meta">{{ d.data|date:"d/m/Y" }}</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

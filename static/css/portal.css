@@ -288,3 +288,10 @@ html.alto-contraste .transp-grupo__icone { background: #000; color: #ffff00; bor
 .noticia__rodape a:hover { border-color: var(--cor-primaria); background: var(--superficie); }
 .noticia__outras { margin-top: 40px; padding-top: 8px; }
 @media (max-width: 600px) { .noticia__cabecalho h1 { font-size: 1.6rem; } }
+
+/* Totais de despesas */
+.totais { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; margin: 8px 0 16px; padding: 0; }
+.totais li { flex: 1 1 180px; padding: 12px 16px; border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie); }
+.totais span { display: block; font-size: .85rem; color: var(--suave); }
+.totais strong { font-size: 1.25rem; }
+td.valor { white-space: nowrap; }

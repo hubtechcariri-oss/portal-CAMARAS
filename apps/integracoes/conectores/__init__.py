@@ -61,7 +61,7 @@ def executar(fonte, desde=None, ate=None):
     """Roda o conector da fonte e grava o resultado em `Importacao`. Nunca levanta exceção."""
     from apps.integracoes.models import Importacao
 
-    from . import pncp  # noqa: F401  (registra os conectores)
+    from . import pncp, tce_ce  # noqa: F401  (registra os conectores)
 
     padrao_desde, padrao_ate = periodo_padrao(fonte)
     desde, ate = desde or padrao_desde, ate or padrao_ate

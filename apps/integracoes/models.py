@@ -15,6 +15,7 @@ class FonteDados(ModeloDaCamara):
 
     class Tipo(models.TextChoices):
         PNCP = "pncp", "PNCP: licitações e contratos"
+        TCE_CE = "tce-ce", "TCE-CE (SIM): despesas e diárias"
 
     tipo = models.CharField(max_length=30, choices=Tipo.choices)
     ativa = models.BooleanField(
@@ -22,7 +23,8 @@ class FonteDados(ModeloDaCamara):
     )
     configuracao = models.JSONField(
         "configuração", default=dict, blank=True,
-        help_text="Ajustes do conector. O PNCP usa o CNPJ cadastrado na câmara e não precisa de nada aqui.",
+        help_text="Ajustes do conector. O PNCP usa o CNPJ cadastrado na câmara e não precisa de nada aqui. "
+                  "O TCE-CE aceita {\"codigo_municipio\": \"017\"} e, se preciso, {\"codigo_orgao\": \"11\"}.",
     )
     ultima_execucao = models.DateTimeField("última execução", null=True, blank=True, editable=False)
     ultimo_sucesso = models.DateTimeField("último sucesso", null=True, blank=True, editable=False)

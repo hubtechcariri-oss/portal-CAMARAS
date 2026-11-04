@@ -6,11 +6,15 @@
 <h1>{{ categoria.nome }}</h1>
 {% if categoria.descricao %}<p>{{ categoria.descricao }}</p>{% endif %}
 {% if categoria.base_legal %}<p class="meta">Base legal: {{ categoria.base_legal }}</p>{% endif %}
+{% if despesas %}
+<p class="meta">Dados enviados pela câmara ao <a href="https://api-dados-abertos.tce.ce.gov.br/sim/" rel="noopener">Tribunal de Contas do Estado do Ceará (SIM/TCE-CE)</a>, atualizados automaticamente. O TCE recebe os dados com cerca de um mês de atraso.</p>
+{% else %}
 <p class="meta">Dados publicados pela câmara no <a href="https://pncp.gov.br/" rel="noopener">Portal Nacional de Contratações Públicas (PNCP)</a>, atualizados automaticamente.</p>
+{% endif %}
 
 <form method="get" class="filtros" role="search">
   <p><label for="q">Buscar</label><input type="search" id="q" name="q" value="{{ termo }}"
-     placeholder="{% if contratos %}objeto, fornecedor ou CNPJ{% else %}objeto, número, processo{% endif %}"></p>
+     placeholder="{% if contratos %}objeto, fornecedor ou CNPJ{% elif despesas %}histórico, credor, CNPJ ou empenho{% else %}objeto, número, processo{% endif %}"></p>
   {% if modalidades|length > 1 %}
   <p><label for="modalidade">Modalidade</label>
     <select id="modalidade" name="modalidade"><option value="">Todas</option>
@@ -25,11 +29,32 @@
 </form>
 
 <p class="meta" role="status">{{ total }} registro{{ total|pluralize }}{% if termo or ano or modalidade %} encontrado{{ total|pluralize }} · <a href="?">limpar filtros</a>{% endif %}</p>
+{% if somas %}
+<ul class="totais">
+  <li><span>Empenhado</span><strong>R$&nbsp;{{ somas.empenhado|default:0|floatformat:"2g" }}</strong></li>
+  <li><span>Liquidado</span><strong>R$&nbsp;{{ somas.liquidado|default:0|floatformat:"2g" }}</strong></li>
+  <li><span>Pago</span><strong>R$&nbsp;{{ somas.pago|default:0|floatformat:"2g" }}</strong></li>
+</ul>
+{% endif %}
 {% include "portal/_exportar.html" %}
 
 <div class="tabela-rolagem">
 <table>
-  {% if contratos %}
+  {% if despesas %}
+  <thead><tr><th scope="col">Empenho</th><th scope="col">Histórico</th><th scope="col">Credor</th>
+    <th scope="col">Empenhado</th><th scope="col">Pago</th></tr></thead>
+  <tbody>
+  {% for d in pagina %}
+    <tr>
+      <td>{{ d.numero_empenho }}<br><span class="meta">{{ d.data_empenho|date:"d/m/Y" }}</span></td>
+      <td>{{ d.historico|truncatechars:220 }}<br><span class="meta">{{ d.nome_elemento }}{% if d.numero_contrato %} · contrato {{ d.numero_contrato }}{% endif %}</span></td>
+      <td>{{ d.fornecedor|default:"—" }}<br><span class="meta">{{ d.fornecedor_documento_publico }}</span></td>
+      <td class="valor">R$&nbsp;{{ d.valor_empenhado|floatformat:"2g" }}</td>
+      <td class="valor">R$&nbsp;{{ d.valor_pago|floatformat:"2g" }}{% if d.valor_liquidado != d.valor_pago %}<br><span class="meta">liquidado: R$&nbsp;{{ d.valor_liquidado|floatformat:"2g" }}</span>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="5">Nenhuma despesa encontrada.</td></tr>{% endfor %}
+  </tbody>
+  {% elif contratos %}
   <thead><tr><th scope="col">Contrato</th><th scope="col">Objeto</th><th scope="col">Fornecedor</th>
     <th scope="col">Valor global</th><th scope="col">Vigência</th><th scope="col">Acesso</th></tr></thead>
   <tbody>

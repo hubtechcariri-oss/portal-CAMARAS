@@ -402,6 +402,20 @@ html[data-theme="dark"] .editor-texto trix-toolbar .trix-button--icon::before { 
 .progresso__marca--ok { background: var(--estado-ok-texto); border-color: var(--estado-ok-texto); }
 .progresso__marca--atencao { background: var(--estado-atencao-texto); border-color: var(--estado-atencao-texto); }
 .lista-linhas__linha { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); min-height: var(--alvo-minimo); padding: var(--esp-2) 0; }
+.numeros-ano { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--esp-3); list-style: none; margin: 0 0 var(--esp-4); padding: 0; }
+.numeros-ano li { list-style: none; margin: 0; padding: 0; }
+.numeros-ano a { display: flex; flex-direction: column; gap: 2px; height: 100%; box-sizing: border-box; padding: var(--esp-3) var(--esp-4);
+  border: 1px solid var(--cartao-borda); border-radius: var(--raio-campo); color: var(--body-fg) !important; text-decoration: none !important; }
+.numeros-ano a:hover { border-color: var(--painel-cor); }
+.numeros-ano__rotulo { font-size: var(--fs-apoio); font-weight: 600; color: var(--texto-apoio); }
+.numeros-ano__valor { font-size: 28px; font-weight: 700; color: var(--texto-titulo); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.numeros-ano__apoio { font-size: var(--fs-apoio); color: var(--texto-apoio); }
+.barras-h { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--esp-2); }
+.barras-h li { display: grid; grid-template-columns: minmax(0, 11em) 1fr 2.5em; align-items: center; gap: var(--esp-2); list-style: none; margin: 0; padding: 0; }
+.barras-h__rotulo { font-size: var(--fs-apoio); color: var(--body-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barras-h__trilho { display: block; height: 14px; }
+.barras-h__barra { display: block; height: 100%; min-width: 2px; background: var(--link-fg); border-radius: 0 4px 4px 0; opacity: .85; }
+.barras-h__valor { font-size: var(--fs-apoio); font-weight: 700; color: var(--texto-titulo); text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) {
   .metricas__numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grafico__mes:nth-child(odd) .grafico__rotulo { visibility: hidden; }

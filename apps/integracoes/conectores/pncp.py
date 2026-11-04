@@ -22,7 +22,8 @@ from django.utils import timezone
 from . import Conector, ErroDeImportacao, Resultado, registrar
 
 BASE = "https://pncp.gov.br/api/consulta/v1/"
-TAMANHO_PAGINA = 500        # máximo aceito pela API
+# Máximo de registros por página que a API aceita em cada consulta (acima disso, HTTP 400).
+TAMANHO_PAGINA = {"contratacoes/publicacao": 50, "contratos": 500}
 JANELA_DIAS = 30            # a API recusa (HTTP 422) períodos maiores que 365 dias
 TENTATIVAS = 3
 FUSO = ZoneInfo("America/Sao_Paulo")
@@ -81,18 +82,27 @@ def buscar_json(caminho, parametros):
             if erro.code == 204:
                 return None
             if erro.code < 500 or tentativa == TENTATIVAS:
-                raise ErroDeImportacao(f"O PNCP respondeu {erro.code} em {caminho}.") from erro
+                raise ErroDeImportacao(f"O PNCP respondeu {erro.code} em {caminho}{_motivo(erro)}.") from erro
         except (URLError, TimeoutError) as erro:
             if tentativa == TENTATIVAS:
                 raise ErroDeImportacao(f"Não foi possível acessar o PNCP ({erro}).") from erro
         time.sleep(2 * tentativa)
 
 
+def _motivo(erro):
+    """A API explica o erro no corpo (ex.: {"message": "Tamanho de página inválido"})."""
+    try:
+        mensagem = json.loads(erro.read() or b"{}").get("message")
+    except (ValueError, AttributeError, OSError):
+        return ""
+    return f": {mensagem}" if mensagem else ""
+
+
 def paginas(caminho, parametros):
     """Percorre todas as páginas de uma consulta e devolve os itens."""
     pagina = 1
     while True:
-        dados = buscar_json(caminho, {**parametros, "pagina": pagina, "tamanhoPagina": TAMANHO_PAGINA})
+        dados = buscar_json(caminho, {**parametros, "pagina": pagina, "tamanhoPagina": TAMANHO_PAGINA[caminho]})
         if not dados:
             return
         yield from dados.get("data") or []

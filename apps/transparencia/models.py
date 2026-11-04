@@ -105,7 +105,10 @@ class Licitacao(ModeloDaCamara):
         indexes = [models.Index(fields=["camara", "ano", "modalidade"])]
 
     def __str__(self):
-        return f"{self.modalidade} nº {self.numero}/{self.ano}" if self.numero else f"{self.modalidade} {self.ano}"
+        if not self.numero:
+            return f"{self.modalidade} {self.ano}"
+        numero = self.numero if "/" in self.numero else f"{self.numero}/{self.ano}"  # o PNCP às vezes já traz o ano
+        return f"{self.modalidade} nº {numero}"
 
 
 class Contrato(ModeloDaCamara):

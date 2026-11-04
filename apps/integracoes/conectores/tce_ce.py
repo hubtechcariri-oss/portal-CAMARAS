@@ -27,6 +27,8 @@ BASE = "https://api-dados-abertos.tce.ce.gov.br/sim/"
 POR_PAGINA = 1000
 TENTATIVAS = 4
 INTERVALO = 0.3
+TEMPO_LIMITE = 45
+TENTATIVAS_SEM_RESPOSTA = 2  # se o TCE nem responde (servidor fora do Brasil, rede bloqueada), desiste logo
 MESES_DE_ATRASO = 3  # mesmo numa importação diária, relê os últimos meses: o TCE recebe os dados com atraso
 TIPO_LEGISLATIVO = "02"
 
@@ -77,7 +79,7 @@ def _get(caminho, parametros):
     for tentativa in range(1, TENTATIVAS + 1):
         time.sleep(INTERVALO)
         try:
-            with urlopen(requisicao, timeout=90) as resposta:
+            with urlopen(requisicao, timeout=TEMPO_LIMITE) as resposta:
                 corpo = json.loads(resposta.read() or b"{}")
             if corpo.get("__errors__"):
                 raise ErroDeImportacao(f"O TCE-CE recusou a consulta {caminho}: {corpo['__errors__'][0].get('message')}")
@@ -89,8 +91,10 @@ def _get(caminho, parametros):
             if (erro.code < 500 and erro.code != 429) or tentativa == TENTATIVAS:
                 raise ErroDeImportacao(f"O TCE-CE respondeu {erro.code} em {caminho}.") from erro
         except (URLError, TimeoutError) as erro:
-            if tentativa == TENTATIVAS:
-                raise ErroDeImportacao(f"Não foi possível acessar o TCE-CE ({erro}).") from erro
+            if tentativa >= TENTATIVAS_SEM_RESPOSTA:
+                raise ErroDeImportacao(
+                    f"Não foi possível acessar o TCE-CE ({erro}). A API do TCE-CE costuma recusar conexões "
+                    "de servidores fora do Brasil; rode a importação num servidor hospedado no Brasil.") from erro
         time.sleep(min(2 ** tentativa, 30))
 
 

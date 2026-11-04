@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Sum
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import slugify
 
@@ -48,6 +48,8 @@ def indice(request):
 CAMPOS_EXPORTACAO = {
     "licitacao": ["modalidade", "numero", "ano", "processo", "situacao", "objeto", "valor_estimado",
                   "valor_homologado", "abertura_propostas", "publicada_em", "link_origem", "link_sistema"],
+    "despesa": ["ano", "numero_empenho", "data_empenho", "elemento", "historico", "fornecedor", "fornecedor_documento",
+                "numero_contrato", "numero_licitacao", "valor_empenhado", "valor_liquidado", "valor_pago"],
     "contrato": ["tipo", "numero", "ano", "processo", "objeto", "fornecedor", "fornecedor_documento", "valor_inicial",
                  "valor_global", "assinatura", "vigencia_inicio", "vigencia_fim", "publicado_em", "link_origem"],
 }
@@ -105,7 +107,10 @@ def categoria_com_importados(request, cat, registros):
     documentos = Documento.objects.da_camara(request.camara).filter(categoria=cat, publicado=True)[:50]
     return render(request, "portal/transparencia/importados.html", {
         "categoria": cat, "pagina": Paginator(qs, 20).get_page(request.GET.get("pagina")),
-        "contratos": registros.model._meta.model_name == "contrato", "total": qs.count(),
+        "contratos": registros.model._meta.model_name == "contrato",
+        "despesas": registros.model._meta.model_name == "despesa", "total": qs.count(),
+        "somas": qs.aggregate(empenhado=Sum("valor_empenhado"), liquidado=Sum("valor_liquidado"), pago=Sum("valor_pago"))
+        if registros.model._meta.model_name == "despesa" else None,
         "termo": termo, "ano": ano, "anos": anos, "modalidade": modalidade, "modalidades": modalidades,
         "documentos": documentos,
     })

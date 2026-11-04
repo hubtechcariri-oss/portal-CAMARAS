@@ -4,7 +4,7 @@ from django.utils.text import Truncator
 
 from apps.camaras.admin_mixins import AdminDaCamara, selo_publicacao
 
-from .models import CategoriaTransparencia, Contrato, Documento, GrupoTransparencia, Licitacao
+from .models import CategoriaTransparencia, Contrato, Despesa, Documento, GrupoTransparencia, Licitacao, MovimentoDespesa
 
 
 class SoPlataforma:
@@ -98,3 +98,41 @@ class ContratoAdmin(SoLeitura, AdminDaCamara):
     @admin.display(description="objeto")
     def objeto_curto(self, obj):
         return Truncator(obj.objeto).chars(90)
+
+
+class MovimentoInline(admin.TabularInline):
+    model = MovimentoDespesa
+    extra = 0
+    can_delete = False
+    readonly_fields = ["tipo", "numero", "data", "valor", "estornado"]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Despesa)
+class DespesaAdmin(AdminDaCamara):
+    """Despesas do SIM/TCE-CE: só leitura (a correção é feita no sistema contábil e reenviada ao TCE)."""
+
+    list_display = ["__str__", "data_empenho", "fornecedor", "historico_curto", "valor_empenhado", "valor_pago"]
+    list_filter = ["ano"]
+    search_fields = ["numero_empenho", "historico", "fornecedor", "fornecedor_documento"]
+    date_hierarchy = "data_empenho"
+    inlines = [MovimentoInline]
+    fieldsets = [
+        (None, {"fields": ["camara", "ano", "numero_empenho", "data_empenho", "historico"]}),
+        ("Classificação", {"fields": ["unidade_orcamentaria", "funcao", "elemento", "modalidade_empenho",
+                                      "numero_contrato", "numero_licitacao"]}),
+        ("Credor e valores", {"fields": ["fornecedor", "fornecedor_documento", "valor_empenhado",
+                                         "valor_liquidado", "valor_pago"]}),
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="histórico")
+    def historico_curto(self, obj):
+        return Truncator(obj.historico).chars(90)

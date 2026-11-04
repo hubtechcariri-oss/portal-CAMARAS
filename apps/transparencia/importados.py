@@ -6,7 +6,7 @@ Cada categoria abaixo mostra, além dos documentos enviados à mão, a tabela de
 from django.db.models import Max, Q
 from django.utils import timezone
 
-from .models import Contrato, Licitacao
+from .models import Contrato, Despesa, Licitacao
 
 DISPENSAS = Q(modalidade__icontains="dispensa") | Q(modalidade__icontains="inexigib")
 
@@ -23,11 +23,24 @@ def _contratos(camara):
     return Contrato.objects.da_camara(camara).select_related("licitacao")
 
 
+DIARIAS = Q(elemento__regex=r"^[0-9]{4}1[45]")  # elemento 14 (diárias civis) ou 15 (militares)
+
+
+def _despesas(camara):
+    return Despesa.objects.da_camara(camara)
+
+
+def _diarias(camara):
+    return Despesa.objects.da_camara(camara).filter(DIARIAS)
+
+
 # slug da categoria -> (consulta, campo de data, campos de busca)
 CATEGORIAS = {
     "licitacoes": (_licitacoes, "publicada_em", ["objeto", "numero", "processo"]),
     "dispensas-e-inexigibilidades": (_dispensas, "publicada_em", ["objeto", "numero", "processo"]),
     "contratos": (_contratos, "publicado_em", ["objeto", "numero", "processo", "fornecedor", "fornecedor_documento"]),
+    "despesas": (_despesas, "data_empenho", ["historico", "numero_empenho", "fornecedor", "fornecedor_documento"]),
+    "diarias": (_diarias, "data_empenho", ["historico", "numero_empenho", "fornecedor"]),
 }
 
 
@@ -63,5 +76,5 @@ def ultimas_datas(camara):
     for slug, (consulta, campo, _) in CATEGORIAS.items():
         ultima = consulta(camara).aggregate(m=Max(campo))["m"]
         if ultima:
-            datas[slug] = timezone.localtime(ultima).date()
+            datas[slug] = timezone.localtime(ultima).date() if hasattr(ultima, "hour") else ultima
     return datas

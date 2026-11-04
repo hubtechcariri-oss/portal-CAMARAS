@@ -259,6 +259,9 @@ class Command(BaseCommand):
         FonteDados.objects.get_or_create(camara=camara, tipo="pncp", defaults={
             "configuracao": {"cnpj": "06580377000143"},
         })
+        FonteDados.objects.get_or_create(camara=camara, tipo="tce-ce", defaults={
+            "configuracao": {"codigo_municipio": "017", "cnpj": "06580377000143"},
+        })
 
     def garantir_legislativo(self, camara):
         """Matérias e sessões ao longo do ano, para o bloco de produção legislativa ter números."""

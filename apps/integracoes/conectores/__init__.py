@@ -86,3 +86,26 @@ def executar(fonte, desde=None, ate=None):
     registro.save()
     fonte.save(update_fields=["ultima_execucao", "ultimo_sucesso", "atualizado_em"])
     return registro
+
+
+def executar_em_segundo_plano(ids_das_fontes):
+    """Roda as importações numa thread, para o painel não esperar (o PNCP pode levar minutos).
+
+    O andamento aparece em Importações (situação "rodando" até terminar).
+    """
+    import threading
+
+    from django.db import connection
+
+    from apps.integracoes.models import FonteDados
+
+    def rodar():
+        try:
+            for fonte in FonteDados.objects.filter(pk__in=ids_das_fontes).select_related("camara"):
+                executar(fonte)
+        finally:
+            connection.close()
+
+    thread = threading.Thread(target=rodar, name="importacao", daemon=True)
+    thread.start()
+    return thread

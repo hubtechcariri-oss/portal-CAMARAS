@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib import admin, messages
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -5,7 +7,7 @@ from django.utils.html import format_html, format_html_join
 
 from apps.camaras.admin_mixins import AdminDaCamara, camaras_do_usuario, selo
 
-from .conectores import executar
+from . import conectores
 from .models import FonteDados, Importacao
 
 SELO_IMPORTACAO = {
@@ -54,12 +56,19 @@ class FonteDadosAdmin(AdminDaCamara):
 
     @admin.action(description="Importar agora as fontes selecionadas")
     def importar_agora(self, request, queryset):
+        rodando = set(Importacao.objects.filter(
+            fonte__in=queryset, situacao=Importacao.Situacao.RODANDO,
+            iniciada_em__gte=timezone.now() - timedelta(hours=1),
+        ).values_list("fonte_id", flat=True))
+        fontes = [f for f in queryset if f.pk not in rodando]
         for fonte in queryset:
-            r = executar(fonte)
-            if r.situacao == Importacao.Situacao.SUCESSO:
-                self.message_user(request, f"{fonte}: {r.novos} novos e {r.atualizados} atualizados.", messages.SUCCESS)
-            else:
-                self.message_user(request, f"{fonte}: {r.mensagem}", messages.ERROR)
+            if fonte.pk in rodando:
+                self.message_user(request, f"{fonte}: já há uma importação em andamento.", messages.WARNING)
+        if fontes:
+            conectores.executar_em_segundo_plano([f.pk for f in fontes])
+            nomes = ", ".join(str(f) for f in fontes)
+            self.message_user(request, f"Importação iniciada: {nomes}. Pode levar alguns minutos; "
+                                       "o resultado aparece em Importações.", messages.SUCCESS)
 
 
 @admin.register(Importacao)

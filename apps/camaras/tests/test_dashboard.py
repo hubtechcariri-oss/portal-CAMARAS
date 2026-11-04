@@ -150,3 +150,60 @@ def t_pk(t, caso):
     from apps.transparencia.models import CategoriaTransparencia
 
     return CategoriaTransparencia.objects.get(nome=t["pendencias"][0]["nome"]).pk
+
+
+class LegislativoTests(TestCase):
+    def setUp(self):
+        from datetime import datetime
+
+        from apps.legislativo.models import Materia, Norma, Sessao, Vereador
+
+        self.a = criar_camara("camara-a.test", "Câmara Municipal A")
+        self.b = criar_camara("camara-b.test", "Câmara Municipal B")
+        hoje = timezone.localdate()
+        ano = hoje.year
+        vs = [Vereador.objects.create(camara=self.a, nome_parlamentar=f"V{i}") for i in range(4)]
+        for i, (tipo, sit) in enumerate([("req", "aprov"), ("req", "tram"), ("pl", "aprov")]):
+            Materia.objects.create(camara=self.a, tipo=tipo, numero=i + 1, ano=ano, data_apresentacao=hoje,
+                                   ementa="x", situacao=sit)
+        Materia.objects.create(camara=self.a, tipo="ind", numero=9, ano=ano - 1, data_apresentacao=date(ano - 1, 1, 5),
+                               ementa="x", situacao="tram")
+        Materia.objects.create(camara=self.b, tipo="req", numero=1, ano=ano, data_apresentacao=hoje, ementa="x")
+        passada = timezone.now() - timedelta(days=1)
+        if passada.year == ano:
+            s = Sessao.objects.create(camara=self.a, numero=1, data_hora=passada)
+            s.presentes.set(vs[:3])
+        Sessao.objects.create(camara=self.a, numero=2, data_hora=timezone.now() + timedelta(days=3))  # futura
+        Norma.objects.create(camara=self.a, tipo="lei", numero="1", ano=ano, data=hoje, ementa="x")
+        self.passada_no_ano = passada.year == ano
+        self.u = User.objects.create_user("leg", password="x", is_staff=True)
+        self.u.user_permissions.add(*Permission.objects.filter(content_type__app_label="legislativo",
+                                                               codename__startswith="view_"))
+        Membro.objects.create(usuario=self.u, camara=self.a)
+
+    def test_numeros_do_ano_da_propria_camara(self):
+        l = indicadores.legislativo(self.u)
+        n = {x["rotulo"]: x for x in l["numeros"]}
+        self.assertEqual(n["Matérias apresentadas"]["valor"], 3)
+        self.assertEqual(n["Matérias apresentadas"]["apoio"], "2 aprovadas")
+        self.assertEqual(n["Em tramitação"]["valor"], 2)  # inclui a do ano passado
+        self.assertEqual(n["Leis e normas"]["valor"], 1)
+        if self.passada_no_ano:
+            self.assertEqual(n["Sessões realizadas"]["valor"], 1)  # a futura não conta
+            self.assertEqual(n["Sessões realizadas"]["apoio"], "presença média de 75%")
+        self.assertEqual(l["tipos"][0], {"rotulo": "Requerimento", "valor": 2, "largura": 100})
+        self.assertEqual(l["tipos"][1]["largura"], 50)
+
+    def test_bloco_no_inicio_e_links_validos(self):
+        self.client.force_login(self.u)
+        r = self.client.get("/admin/", HTTP_HOST="camara-a.test")
+        self.assertContains(r, "Produção legislativa")
+        self.assertContains(r, "Matérias por tipo")
+        for n in r.context["dashboard"]["legislativo"]["numeros"]:
+            lista = self.client.get(n["url"], HTTP_HOST="camara-a.test")
+            self.assertEqual(lista.status_code, 200, n["url"])  # filtro aceito pelo admin (sem ?e=1)
+
+    def test_sem_permissao_o_bloco_some(self):
+        u = User.objects.create_user("semleg", password="x", is_staff=True)
+        Membro.objects.create(usuario=u, camara=self.a)
+        self.assertIsNone(indicadores.legislativo(u))

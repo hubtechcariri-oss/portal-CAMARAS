@@ -1,0 +1,37 @@
+{# Dashboard 3: produção legislativa do ano corrente. #}
+<section class="cartao painel-secao" aria-labelledby="t-legislativo">
+  <h2 id="t-legislativo" class="cartao__titulo">Produção legislativa <span class="cartao__periodo">{{ l.ano }}</span></h2>
+  <ul class="numeros-ano">
+    {% for n in l.numeros %}
+    <li><a href="{{ n.url }}">
+      <span class="numeros-ano__rotulo">{{ n.rotulo }}</span>
+      <span class="numeros-ano__valor">{{ n.valor }}</span>
+      <span class="numeros-ano__apoio">{{ n.apoio }}</span>
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% if l.serie %}
+  <div class="painel-secao__grade">
+    <article class="metricas">
+      <header class="metricas__topo"><h3>Matérias por tipo em {{ l.ano }}</h3></header>
+      {% if l.tipos %}
+      <ul class="barras-h">
+        {% for t in l.tipos %}
+        <li>
+          <span class="barras-h__rotulo">{{ t.rotulo }}</span>
+          <span class="barras-h__trilho" aria-hidden="true"><span class="barras-h__barra" style="width: {{ t.largura }}%"></span></span>
+          <span class="barras-h__valor">{{ t.valor }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="cartao__vazio">Nenhuma matéria apresentada neste ano.</p>
+      {% endif %}
+    </article>
+    <article class="metricas">
+      <header class="metricas__topo"><h3>Matérias apresentadas</h3><span class="cartao__periodo">últimos 12 meses</span></header>
+      {% include "admin/inicio/grafico_barras.html" with serie=l.serie titulo="Matérias apresentadas por mês" %}
+    </article>
+  </div>
+  {% endif %}
+</section>

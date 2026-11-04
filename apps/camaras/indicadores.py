@@ -182,3 +182,61 @@ def transparencia(usuario, camara):
         "url_catalogo": (reverse("admin:transparencia_categoriatransparencia_changelist")
                          if usuario.has_perm("transparencia.change_categoriatransparencia") else None),
     }
+
+
+# ---------------------------------------------------------------------------
+# 3. Produção legislativa do ano
+# ---------------------------------------------------------------------------
+
+def legislativo(usuario):
+    from django.db.models import Count
+    from django.urls import reverse
+
+    from apps.legislativo.models import Materia, Norma, Sessao, Vereador
+
+    ver_materias, ver_sessoes, ver_normas = (_pode_ver(usuario, m) for m in (Materia, Sessao, Norma))
+    if not (ver_materias or ver_sessoes or ver_normas):
+        return None
+    hoje = timezone.localdate()
+    ano = hoje.year
+    numeros = []
+
+    if ver_sessoes:
+        realizadas = _escopo(Sessao.objects.filter(data_hora__year=ano, data_hora__lte=timezone.now()), usuario)
+        total = realizadas.count()
+        # Presença média: presentes ÷ vereadores em exercício da câmara da sessão,
+        # só nas sessões que têm lista de presença.
+        com_presenca = list(realizadas.annotate(n=Count("presentes")).filter(n__gt=0).values_list("camara_id", "n"))
+        por_camara = dict(Vereador.objects.filter(em_exercicio=True, camara_id__in={c for c, _ in com_presenca})
+                          .values("camara_id").annotate(n=Count("id")).values_list("camara_id", "n"))
+        vagas = sum(por_camara.get(c, 0) for c, _ in com_presenca)
+        presenca = _percentual(sum(n for _, n in com_presenca), vagas) if vagas else None
+        numeros.append({"rotulo": "Sessões realizadas", "valor": total,
+                        "apoio": f"presença média de {presenca}%" if presenca is not None else "sem lista de presença",
+                        "url": reverse("admin:legislativo_sessao_changelist") + f"?data_hora__year={ano}"})
+
+    tipos, serie = [], None
+    if ver_materias:
+        materias = _escopo(Materia.objects.filter(data_apresentacao__year=ano), usuario)
+        apresentadas = materias.count()
+        aprovadas = materias.filter(situacao=Materia.Situacao.APROVADA).count()
+        tramitando = _escopo(Materia.objects.filter(situacao=Materia.Situacao.TRAMITACAO), usuario).count()
+        url = reverse("admin:legislativo_materia_changelist")
+        numeros.append({"rotulo": "Matérias apresentadas", "valor": apresentadas,
+                        "apoio": f"{aprovadas} aprovada{'s' if aprovadas != 1 else ''}", "url": f"{url}?ano={ano}"})
+        numeros.append({"rotulo": "Em tramitação", "valor": tramitando, "apoio": "de todos os anos",
+                        "url": f"{url}?situacao__exact={Materia.Situacao.TRAMITACAO}"})
+        rotulos = dict(Materia.Tipo.choices)
+        contagem = list(materias.values("tipo").annotate(n=Count("id")).order_by("-n", "tipo")[:5])
+        maior = contagem[0]["n"] if contagem else 0
+        tipos = [{"rotulo": rotulos.get(c["tipo"], c["tipo"]), "valor": c["n"],
+                  "largura": round(c["n"] * 100 / maior)} for c in contagem]
+        datas = _escopo(Materia.objects.filter(data_apresentacao__gte=_inicio_da_serie(hoje)), usuario)
+        serie = _serie_mensal(datas.values_list("data_apresentacao", flat=True), hoje)
+
+    if ver_normas:
+        normas = _escopo(Norma.objects.filter(ano=ano, publicada=True), usuario).count()
+        numeros.append({"rotulo": "Leis e normas", "valor": normas, "apoio": f"publicadas em {ano}",
+                        "url": reverse("admin:legislativo_norma_changelist") + f"?ano={ano}"})
+
+    return {"ano": ano, "numeros": numeros, "tipos": tipos, "serie": serie}

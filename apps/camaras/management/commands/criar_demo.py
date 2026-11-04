@@ -79,6 +79,7 @@ class Command(BaseCommand):
             self.garantir_visual(existente.camara)
             self.garantir_atendimento(existente.camara)
             self.garantir_transparencia(existente.camara)
+            self.garantir_legislativo(existente.camara)
             self.stdout.write(f"A câmara de demonstração já existe ({', '.join(hosts)}). Visual conferido.")
             return
         host = hosts[0]
@@ -128,6 +129,7 @@ class Command(BaseCommand):
         self.garantir_visual(camara)
         self.garantir_atendimento(camara)
         self.garantir_transparencia(camara)
+        self.garantir_legislativo(camara)
         self.stdout.write(self.style.SUCCESS(f"Câmara de demonstração criada em: {', '.join(hosts)}"))
 
     def garantir_visual(self, camara):
@@ -244,3 +246,38 @@ class Command(BaseCommand):
             if categoria and not Documento.objects.da_camara(camara).filter(categoria=categoria).exists():
                 Documento.objects.create(camara=camara, categoria=categoria, titulo=titulo,
                                          data=hoje - timedelta(days=dias), descricao="Documento de exemplo.")
+
+    def garantir_legislativo(self, camara):
+        """Matérias e sessões ao longo do ano, para o bloco de produção legislativa ter números."""
+        import random
+
+        if Materia.objects.da_camara(camara).count() >= 10:
+            return
+        sorteio = random.Random(camara.pk)
+        hoje = timezone.localdate()
+        vereadores = list(Vereador.objects.da_camara(camara).filter(em_exercicio=True))
+        tipos = ["req", "req", "req", "ind", "ind", "pl", "moc", "pr"]
+        situacoes = [Materia.Situacao.APROVADA, Materia.Situacao.APROVADA, Materia.Situacao.TRAMITACAO,
+                     Materia.Situacao.ARQUIVADA]
+        numero = 100
+        for meses_atras in range(11, -1, -1):
+            total_meses = hoje.year * 12 + hoje.month - 1 - meses_atras
+            ano, mes = total_meses // 12, total_meses % 12 + 1
+            for _ in range(sorteio.randint(1, 6)):
+                numero += 1
+                dia = sorteio.randint(1, 28)
+                if date(ano, mes, dia) > hoje:
+                    continue
+                m = Materia.objects.create(
+                    camara=camara, tipo=sorteio.choice(tipos), numero=numero, ano=ano,
+                    data_apresentacao=date(ano, mes, dia), ementa="Matéria de exemplo para a demonstração.",
+                    situacao=sorteio.choice(situacoes))
+                if vereadores:
+                    m.autores.set(sorteio.sample(vereadores, 1))
+            if ano == hoje.year and vereadores:
+                for semana in (1, 3):
+                    quando = datetime(ano, mes, semana * 7, 9, tzinfo=ZoneInfo("America/Sao_Paulo"))
+                    if quando.date() >= hoje:
+                        continue
+                    s = Sessao.objects.create(camara=camara, numero=mes * 2 + semana, data_hora=quando)
+                    s.presentes.set(sorteio.sample(vereadores, sorteio.randint(len(vereadores) - 1, len(vereadores))))

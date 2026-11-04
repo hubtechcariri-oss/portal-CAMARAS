@@ -330,4 +330,5 @@ def painel_dashboard(context):
     return {
         "atendimento": indicadores.atendimento(usuario),
         "transparencia": indicadores.transparencia(usuario, painel_camara(context)),
+        "legislativo": indicadores.legislativo(usuario),
     }

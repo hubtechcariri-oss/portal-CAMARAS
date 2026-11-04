@@ -107,6 +107,7 @@
   {% painel_dashboard as dashboard %}
   {% if dashboard.atendimento %}{% include "admin/inicio/atendimento.html" with filas=dashboard.atendimento %}{% endif %}
   {% if dashboard.transparencia %}{% include "admin/inicio/transparencia.html" with t=dashboard.transparencia %}{% endif %}
+  {% if dashboard.legislativo %}{% include "admin/inicio/legislativo.html" with l=dashboard.legislativo %}{% endif %}
 
   {% if app_list %}
   <section class="cartao" aria-labelledby="t-areas">

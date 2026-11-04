@@ -268,6 +268,7 @@ MENU = [
     ]),
     ("configuracoes", "Configurações", "engrenagem", [
         ("camaras.identidadeportal", "Brasão, cores e contatos"), ("camaras.camara", "Câmaras"),
+        ("integracoes.fontedados", "Fontes de dados"), ("integracoes.importacao", "Importações"),
         ("auth.user", "Usuários"), ("auth.group", "Grupos e permissões"),
     ]),
 ]
@@ -331,4 +332,5 @@ def painel_dashboard(context):
         "atendimento": indicadores.atendimento(usuario),
         "transparencia": indicadores.transparencia(usuario, painel_camara(context)),
         "legislativo": indicadores.legislativo(usuario),
+        "integracoes": indicadores.integracoes(usuario),
     }

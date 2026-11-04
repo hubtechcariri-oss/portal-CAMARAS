@@ -260,7 +260,8 @@ MENU = [
         ("legislativo.vereador", "Vereadores"), ("legislativo.legislatura", "Legislaturas"),
     ]),
     ("transparencia", "Transparência", "transparencia", [
-        ("transparencia.documento", "Documentos"), ("transparencia.categoriatransparencia", "Categorias"),
+        ("transparencia.documento", "Documentos"), ("transparencia.licitacao", "Licitações"),
+        ("transparencia.contrato", "Contratos"), ("transparencia.categoriatransparencia", "Categorias"),
         ("transparencia.grupotransparencia", "Grupos"),
     ]),
     ("atendimento", "Atendimento", "ouvidoria", [

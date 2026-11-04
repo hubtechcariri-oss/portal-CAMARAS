@@ -79,7 +79,11 @@ class PaginasPublicasTests(TestCase):
 
     def test_indice_conta_registros_importados(self):
         r = self.get("/transparencia/")
-        self.assertContains(r, 'licitacoes/">Licitações</a>\n      <span class="meta">(2)</span>', html=False)
+        cats = {c.slug: c.total for g in r.context["grupos"] for c in g.categorias.all()}
+        self.assertEqual((cats["licitacoes"], cats["dispensas-e-inexigibilidades"], cats["contratos"]), (2, 1, 2))
+        self.assertEqual(r.context["total_importados"], 5)
+        self.assertContains(r, "<strong>5</strong> registros de licitações e contratos (PNCP)", html=False)
+        self.assertContains(r, "Mais procurados")
 
     def test_sem_importados_mostra_documentos_como_antes(self):
         r = self.client.get("/transparencia/licitacoes/", HTTP_HOST="camara-b.test")

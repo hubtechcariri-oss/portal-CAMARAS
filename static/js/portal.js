@@ -108,3 +108,37 @@
   mostrar(0);
   iniciar();
 })();
+
+// Transparência: filtra os itens do catálogo enquanto a pessoa digita.
+(function () {
+  "use strict";
+  var campo = document.querySelector("[data-filtro-transparencia]");
+  if (!campo) return;
+  var grupos = document.querySelectorAll("[data-grupo]");
+  var ocultaveis = document.querySelectorAll("[data-some-na-busca]");
+  var aviso = document.querySelector("[data-sem-resultado]");
+
+  function normalizar(texto) {
+    return texto.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  }
+
+  campo.addEventListener("input", function () {
+    var termo = normalizar(campo.value.trim());
+    var achados = 0;
+    grupos.forEach(function (grupo) {
+      var visiveis = 0;
+      grupo.querySelectorAll("[data-item]").forEach(function (item) {
+        var mostra = !termo || normalizar(item.getAttribute("data-item")).indexOf(termo) !== -1;
+        item.hidden = !mostra;
+        if (mostra) visiveis++;
+      });
+      grupo.hidden = visiveis === 0;
+      achados += visiveis;
+    });
+    ocultaveis.forEach(function (el) { el.hidden = !!termo; });
+    aviso.hidden = !termo;
+    aviso.textContent = !termo ? "" : achados
+      ? achados + (achados === 1 ? " item encontrado." : " itens encontrados.")
+      : "Nenhum item encontrado. Tente outra palavra ou faça um pedido no e-SIC.";
+  });
+})();

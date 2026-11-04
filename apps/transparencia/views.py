@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, render
+from django.utils.text import slugify
 
 from apps.camaras.exportacao import exportar, formato_pedido
 
@@ -8,20 +9,40 @@ from . import importados
 from .models import CategoriaTransparencia, Documento, GrupoTransparencia
 
 
+# Ícone de cada grupo do catálogo (pelo slug do nome); grupos novos usam o ícone geral.
+ICONES_GRUPO = {
+    "atendimento-ao-cidadao": "info", "institucional": "predio", "execucao-orcamentaria-e-financeira": "dinheiro",
+    "gestao-fiscal-e-prestacao-de-contas": "grafico", "pessoal": "pessoas", "licitacoes-e-contratos": "licitacao",
+    "atos-administrativos": "documento",
+}
+# Itens mais procurados, em destaque no topo (só os que existem no catálogo).
+DESTAQUES = [
+    ("receitas", "dinheiro"), ("despesas", "grafico"), ("licitacoes", "licitacao"), ("contratos", "documento"),
+    ("quadro-de-pessoal-e-remuneracao", "pessoas"), ("diarias", "diaria"),
+]
+
+
 def indice(request):
-    contagens = dict(
-        Documento.objects.da_camara(request.camara)
-        .filter(publicado=True)
-        .values("categoria_id")
-        .annotate(n=Count("id"))
-        .values_list("categoria_id", "n")
-    )
+    publicados = Documento.objects.da_camara(request.camara).filter(publicado=True)
+    contagens = dict(publicados.values("categoria_id").annotate(n=Count("id")).values_list("categoria_id", "n"))
     importados_ = importados.contagens(request.camara)
     grupos = list(GrupoTransparencia.objects.prefetch_related("categorias"))
+    por_slug = {}
     for grupo in grupos:
+        grupo.icone = f"portal/icones/{ICONES_GRUPO.get(slugify(grupo.nome), 'transparencia')}.svg"
+        grupo.total = 0
         for cat in grupo.categorias.all():
             cat.total = contagens.get(cat.pk, 0) + importados_.get(cat.slug, 0)
-    return render(request, "portal/transparencia/indice.html", {"grupos": grupos})
+            grupo.total += cat.total
+            por_slug[cat.slug] = cat
+    destaques = [(por_slug[slug], f"portal/icones/{icone}.svg") for slug, icone in DESTAQUES if slug in por_slug]
+
+    datas = [d for d in [publicados.aggregate(m=Max("data"))["m"], *importados.ultimas_datas(request.camara).values()] if d]
+    return render(request, "portal/transparencia/indice.html", {
+        "grupos": grupos, "destaques": destaques,
+        "total_publicacoes": sum(contagens.values()), "total_importados": sum(importados_.values()),
+        "atualizado_em": max(datas) if datas else None,
+    })
 
 
 CAMPOS_EXPORTACAO = {

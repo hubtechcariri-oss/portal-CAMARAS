@@ -1,3 +1,4 @@
+import io
 from datetime import date, datetime
 from datetime import timezone as dt_timezone
 from decimal import Decimal
@@ -66,10 +67,19 @@ class PaginasTests(TestCase):
         with mock.patch.object(pncp, "buscar_json", side_effect=lambda c, p: respostas[p["pagina"]]):
             self.assertEqual(list(pncp.paginas("contratos", {})), [1, 2, 3])
 
-    def test_erro_http_vira_erro_de_importacao(self):
-        erro = HTTPError("u", 422, "Período maior que 365 dias", {}, None)
-        with mock.patch.object(pncp, "urlopen", side_effect=erro), self.assertRaisesMessage(ErroDeImportacao, "422"):
+    def test_erro_http_vira_erro_de_importacao_com_o_motivo(self):
+        corpo = io.BytesIO('{"message": "Tamanho de página inválido", "status": "400"}'.encode())
+        erro = HTTPError("u", 400, "Bad Request", {}, corpo)
+        with mock.patch.object(pncp, "urlopen", side_effect=erro), \
+                self.assertRaisesMessage(ErroDeImportacao, "400 em contratos: Tamanho de página inválido"):
             pncp.buscar_json("contratos", {})
+
+    def test_tamanho_de_pagina_respeita_o_limite_de_cada_consulta(self):
+        vistos = []
+        with mock.patch.object(pncp, "buscar_json", side_effect=lambda c, p: vistos.append(p["tamanhoPagina"])):
+            list(pncp.paginas("contratacoes/publicacao", {}))
+            list(pncp.paginas("contratos", {}))
+        self.assertEqual(vistos, [50, 500])
 
 
 class ConectorPNCPTests(TestCase):

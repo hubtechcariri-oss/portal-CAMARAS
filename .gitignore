@@ -6,3 +6,4 @@ staticfiles/
 .env
 anexos_privados/
 .chave_secreta
+tmp/

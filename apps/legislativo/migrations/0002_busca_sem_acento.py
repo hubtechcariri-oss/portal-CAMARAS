@@ -5,7 +5,6 @@ Cidadãos digitam "orcamento" e esperam achar "orçamento". A configuração
 Requer a extensão `unaccent` (disponível nos Postgres gerenciados comuns).
 """
 
-from django.contrib.postgres.operations import UnaccentExtension
 from django.db import migrations
 
 CRIAR = """
@@ -16,9 +15,19 @@ ALTER TEXT SEARCH CONFIGURATION portugues
 """
 
 
+def criar(apps, schema_editor):
+    if schema_editor.connection.vendor == "postgresql":  # no MySQL a busca é por trecho (ver views.busca_textual)
+        schema_editor.execute("CREATE EXTENSION IF NOT EXISTS unaccent;")
+        schema_editor.execute(CRIAR)
+
+
+def remover(apps, schema_editor):
+    if schema_editor.connection.vendor == "postgresql":
+        schema_editor.execute("DROP TEXT SEARCH CONFIGURATION IF EXISTS portugues;")
+
+
 class Migration(migrations.Migration):
     dependencies = [("legislativo", "0001_initial")]
     operations = [
-        UnaccentExtension(),
-        migrations.RunSQL(CRIAR, "DROP TEXT SEARCH CONFIGURATION IF EXISTS portugues;"),
+        migrations.RunPython(criar, remover),
     ]

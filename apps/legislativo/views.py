@@ -1,6 +1,6 @@
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
-from django.db.models import Count, F
+from django.db import connection
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
@@ -30,7 +30,18 @@ def vereador(request, pk):
 
 
 def busca_textual(qs, termo):
-    """Busca em português sem acento nos campos `ementa` (peso maior) e `texto`."""
+    """Busca em português sem acento nos campos `ementa` (peso maior) e `texto`.
+
+    No MySQL/MariaDB (hospedagem compartilhada) é uma busca simples por trecho; a collation
+    utf8mb4_unicode_ci já ignora acentos e maiúsculas.
+    """
+    if connection.vendor != "postgresql":
+        filtro = Q()
+        for palavra in termo.split():
+            filtro &= Q(ementa__icontains=palavra) | Q(texto__icontains=palavra)
+        return qs.filter(filtro)
+    from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+
     vetor = SearchVector("ementa", weight="A", config=CONFIG_BUSCA) + SearchVector(
         "texto", weight="B", config=CONFIG_BUSCA
     )

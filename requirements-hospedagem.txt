@@ -1,0 +1,8 @@
+# Hospedagem compartilhada (MySQL/MariaDB + Passenger). Sem PostgreSQL nem gunicorn.
+asgiref==3.13.0
+Django==5.2.19
+nh3==0.3.7
+pillow==13.0.0
+PyMySQL==1.1.2
+sqlparse==0.6.1
+whitenoise==6.11.0

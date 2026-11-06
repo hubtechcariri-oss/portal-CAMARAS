@@ -5,3 +5,4 @@ media/
 staticfiles/
 .env
 anexos_privados/
+.chave_secreta

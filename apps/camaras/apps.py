@@ -5,3 +5,8 @@ class CamarasConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.camaras"
     verbose_name = "Câmara e acesso"
+
+    def ready(self):
+        from . import auditoria
+
+        auditoria.conectar()

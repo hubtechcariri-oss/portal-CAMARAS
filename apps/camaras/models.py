@@ -101,3 +101,42 @@ class ModeloDaCamara(models.Model):
 
     class Meta:
         abstract = True
+
+
+class RegistroAuditoria(models.Model):
+    """Uma linha da trilha de auditoria: quem fez o quê, em qual registro, quando e de onde.
+
+    É gravada automaticamente (ver auditoria.py) e não pode ser editada nem apagada pelo painel.
+    """
+
+    class Acao(models.TextChoices):
+        CRIOU = "criou", "Criou"
+        ALTEROU = "alterou", "Alterou"
+        EXCLUIU = "excluiu", "Excluiu"
+        ENTROU = "entrou", "Entrou no painel"
+        SAIU = "saiu", "Saiu do painel"
+        FALHOU = "falhou", "Tentativa de acesso recusada"
+
+    momento = models.DateTimeField("quando", auto_now_add=True, db_index=True)
+    camara = models.ForeignKey(Camara, verbose_name="câmara", null=True, blank=True, on_delete=models.SET_NULL,
+                               related_name="+")
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="usuário", null=True, blank=True,
+                                on_delete=models.SET_NULL, related_name="+")
+    usuario_nome = models.CharField("quem", max_length=150, blank=True)
+    acao = models.CharField("ação", max_length=10, choices=Acao.choices)
+    tipo = models.CharField("tipo de registro", max_length=100, blank=True)
+    content_type = models.ForeignKey("contenttypes.ContentType", null=True, blank=True, on_delete=models.SET_NULL,
+                                     related_name="+")
+    object_id = models.CharField(max_length=64, blank=True)
+    objeto = models.CharField("registro", max_length=200, blank=True)
+    detalhes = models.JSONField("detalhes", default=dict, blank=True)
+    ip = models.GenericIPAddressField("IP", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "registro de auditoria"
+        verbose_name_plural = "registros de auditoria"
+        ordering = ["-momento", "-pk"]
+        indexes = [models.Index(fields=["camara", "-momento"])]
+
+    def __str__(self):
+        return f"{self.usuario_nome or 'Sistema'} {self.get_acao_display().lower()} {self.objeto}".strip()

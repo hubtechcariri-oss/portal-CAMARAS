@@ -272,6 +272,7 @@ MENU = [
         ("camaras.identidadeportal", "Brasão, cores e contatos"), ("camaras.camara", "Câmaras"),
         ("integracoes.fontedados", "Fontes de dados"), ("integracoes.importacao", "Importações"),
         ("auth.user", "Usuários"), ("auth.group", "Grupos e permissões"),
+        ("camaras.registroauditoria", "Trilha de auditoria"),
     ]),
 ]
 

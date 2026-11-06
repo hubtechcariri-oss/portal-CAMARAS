@@ -15,7 +15,7 @@ class FonteDados(ModeloDaCamara):
 
     class Tipo(models.TextChoices):
         PNCP = "pncp", "PNCP: licitações e contratos"
-        TCE_CE = "tce-ce", "TCE-CE (SIM): despesas e diárias"
+        TCE_CE = "tce-ce", "TCE-CE (SIM): despesas, receitas, licitações e contratos"
 
     tipo = models.CharField(max_length=30, choices=Tipo.choices)
     ativa = models.BooleanField(

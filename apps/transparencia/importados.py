@@ -6,7 +6,7 @@ Cada categoria abaixo mostra, além dos documentos enviados à mão, a tabela de
 from django.db.models import Max, Q
 from django.utils import timezone
 
-from .models import Contrato, Despesa, Licitacao
+from .models import Contrato, Despesa, Licitacao, Receita
 
 DISPENSAS = Q(modalidade__icontains="dispensa") | Q(modalidade__icontains="inexigib")
 
@@ -34,6 +34,10 @@ def _diarias(camara):
     return Despesa.objects.da_camara(camara).filter(DIARIAS)
 
 
+def _receitas(camara):
+    return Receita.objects.da_camara(camara)
+
+
 # slug da categoria -> (consulta, campo de data, campos de busca)
 CATEGORIAS = {
     "licitacoes": (_licitacoes, "publicada_em", ["objeto", "numero", "processo"]),
@@ -41,6 +45,7 @@ CATEGORIAS = {
     "contratos": (_contratos, "publicado_em", ["objeto", "numero", "processo", "fornecedor", "fornecedor_documento"]),
     "despesas": (_despesas, "data_empenho", ["historico", "numero_empenho", "fornecedor", "fornecedor_documento"]),
     "diarias": (_diarias, "data_empenho", ["historico", "numero_empenho", "fornecedor"]),
+    "receitas": (_receitas, "competencia", ["descricao", "conta"]),
 }
 
 

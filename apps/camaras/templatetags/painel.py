@@ -262,6 +262,7 @@ MENU = [
     ("transparencia", "Transparência", "transparencia", [
         ("transparencia.documento", "Documentos"), ("transparencia.licitacao", "Licitações"),
         ("transparencia.contrato", "Contratos"), ("transparencia.despesa", "Despesas (TCE-CE)"),
+        ("transparencia.receita", "Receitas (TCE-CE)"),
         ("transparencia.categoriatransparencia", "Categorias"),
         ("transparencia.grupotransparencia", "Grupos"),
     ]),

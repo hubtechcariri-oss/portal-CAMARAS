@@ -117,7 +117,8 @@ class Licitacao(ModeloDaCamara):
     def __str__(self):
         if not self.numero:
             return f"{self.modalidade} {self.ano}"
-        numero = self.numero if "/" in self.numero else f"{self.numero}/{self.ano}"  # o PNCP às vezes já traz o ano
+        # o PNCP às vezes já traz o ano; o TCE-CE usa números como 2401.01.2025-PE
+        numero = self.numero if "/" in self.numero or str(self.ano) in self.numero else f"{self.numero}/{self.ano}"
         return f"{self.modalidade} nº {numero}"
 
 
@@ -158,6 +159,28 @@ class Contrato(ModeloDaCamara):
     @property
     def fornecedor_documento_publico(self):
         return documento_publico(self.fornecedor_documento)
+
+
+class Receita(ModeloDaCamara):
+    """Receita mensal da câmara importada do TCE-CE. Na câmara, quase tudo é o repasse do duodécimo pela
+    prefeitura, que a contabilidade registra como transferência financeira recebida (conta 4.5.1.1.2)."""
+
+    origem = models.CharField(max_length=20, default="tce-ce", editable=False)
+    id_origem = models.CharField("identificador na origem", max_length=80, editable=False)
+    ano = models.PositiveIntegerField("exercício")
+    competencia = models.DateField("competência", help_text="Primeiro dia do mês.")
+    descricao = models.CharField("descrição", max_length=200)
+    conta = models.CharField("conta contábil", max_length=20, blank=True)
+    valor_mes = models.DecimalField("recebido no mês", max_digits=16, decimal_places=2, default=0)
+    valor_acumulado = models.DecimalField("acumulado no ano", max_digits=16, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ["-competencia", "descricao"]
+        unique_together = [("camara", "origem", "id_origem")]
+        indexes = [models.Index(fields=["camara", "ano"])]
+
+    def __str__(self):
+        return f"{self.descricao} {self.competencia:%m/%Y}"
 
 
 # Elemento de despesa (Portaria Interministerial 163/2001): os dígitos 5 e 6 do código (3.3.90.XX).

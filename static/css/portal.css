@@ -115,7 +115,11 @@ a { color: var(--cor-primaria); }
 .secao__cabecalho h2::after { content: ""; position: absolute; left: 0; bottom: 0; width: 48px; height: 4px; border-radius: 2px; background: var(--destaque); }
 .secao__cabecalho a { font-weight: 600; }
 
-.atalhos-rapidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.atalhos-rapidos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.atalhos-rapidos > li { display: flex; } /* todos os botões com a mesma altura, mesmo com texto de 1, 2 ou 3 linhas */
+.atalhos-rapidos .atalho { flex: 1; min-height: 132px; justify-content: flex-start; }
+@media (min-width: 600px) { .atalhos-rapidos { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .atalhos-rapidos { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); } } /* tudo numa linha só */
 .atalho { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 18px 10px; background: var(--fundo); border: 1px solid var(--borda); border-radius: var(--raio); text-decoration: none; color: var(--texto); font-weight: 600; font-size: .92rem; line-height: 1.3; box-shadow: var(--sombra); transition: transform .15s, border-color .15s; }
 .atalho:hover { transform: translateY(-2px); border-color: var(--cor-primaria); }
 .atalho svg { width: 34px; height: 34px; color: var(--cor-primaria); }

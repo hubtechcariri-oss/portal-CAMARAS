@@ -24,7 +24,9 @@ Para hospedagens sem SSH, com MySQL/MariaDB e Passenger (ex.: Acquahost). Em ser
 5. **Câmara e administrador:** `implantar.py --sem-baixar --demo DOMINIO` cria a câmara de demonstração;
    para o superusuário, defina `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL` e
    `DJANGO_SUPERUSER_PASSWORD`, rode `implantar.py --sem-baixar --admin` e apague a variável da senha.
-6. **Atualizar:** rode `implantar.py` de novo (ou agende como tarefa cron).
+6. **Página do subdomínio:** se aparecer "Este é um espaço reservado para o subdomínio", renomeie
+   `domains/<dominio>/public_html/index.html` (o servidor entrega esse arquivo antes da aplicação).
+7. **Atualizar:** rode `implantar.py` de novo (ou agende como tarefa cron).
 
 Detalhes do MySQL: as datas ficam gravadas no horário de Brasília (não exige as tabelas de fuso do MySQL) e a
 busca de leis e matérias é por trecho, sem acento (a collation `utf8mb4_unicode_ci` ignora acentos).

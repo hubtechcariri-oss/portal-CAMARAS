@@ -22,7 +22,7 @@ CAMPOS_IGNORADOS = {"last_login", "criado_em", "atualizado_em"}
 IGNORADOS = {
     "camaras.registroauditoria", "admin.logentry", "sessions.session", "contenttypes.contenttype",
     "integracoes.importacao", "transparencia.licitacao", "transparencia.contrato",
-    "transparencia.despesa", "transparencia.movimentodespesa",
+    "transparencia.despesa", "transparencia.movimentodespesa", "transparencia.receita",
 }
 
 

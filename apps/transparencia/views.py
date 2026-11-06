@@ -50,6 +50,7 @@ CAMPOS_EXPORTACAO = {
                   "valor_homologado", "abertura_propostas", "publicada_em", "link_origem", "link_sistema"],
     "despesa": ["ano", "numero_empenho", "data_empenho", "elemento", "historico", "fornecedor", "fornecedor_documento",
                 "numero_contrato", "numero_licitacao", "valor_empenhado", "valor_liquidado", "valor_pago"],
+    "receita": ["ano", "competencia", "descricao", "conta", "valor_mes", "valor_acumulado"],
     "contrato": ["tipo", "numero", "ano", "processo", "objeto", "fornecedor", "fornecedor_documento", "valor_inicial",
                  "valor_global", "assinatura", "vigencia_inicio", "vigencia_fim", "publicado_em", "link_origem"],
 }
@@ -105,12 +106,14 @@ def categoria_com_importados(request, cat, registros):
         return _exportar_importados(formato, cat.slug, qs)
 
     documentos = Documento.objects.da_camara(request.camara).filter(categoria=cat, publicado=True)[:50]
+    modelo = registros.model._meta.model_name
     return render(request, "portal/transparencia/importados.html", {
         "categoria": cat, "pagina": Paginator(qs, 20).get_page(request.GET.get("pagina")),
-        "contratos": registros.model._meta.model_name == "contrato",
-        "despesas": registros.model._meta.model_name == "despesa", "total": qs.count(),
+        "contratos": modelo == "contrato", "despesas": modelo == "despesa", "receitas": modelo == "receita",
+        "origens": set(registros.values_list("origem", flat=True).distinct()), "total": qs.count(),
         "somas": qs.aggregate(empenhado=Sum("valor_empenhado"), liquidado=Sum("valor_liquidado"), pago=Sum("valor_pago"))
-        if registros.model._meta.model_name == "despesa" else None,
+        if modelo == "despesa" else None,
+        "recebido": qs.aggregate(t=Sum("valor_mes"))["t"] if modelo == "receita" else None,
         "termo": termo, "ano": ano, "anos": anos, "modalidade": modalidade, "modalidades": modalidades,
         "documentos": documentos,
     })

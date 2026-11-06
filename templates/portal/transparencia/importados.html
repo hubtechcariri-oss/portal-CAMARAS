@@ -6,15 +6,16 @@
 <h1>{{ categoria.nome }}</h1>
 {% if categoria.descricao %}<p>{{ categoria.descricao }}</p>{% endif %}
 {% if categoria.base_legal %}<p class="meta">Base legal: {{ categoria.base_legal }}</p>{% endif %}
-{% if despesas %}
+{% if "tce-ce" in origens %}
 <p class="meta">Dados enviados pela câmara ao <a href="https://api-dados-abertos.tce.ce.gov.br/sim/" rel="noopener">Tribunal de Contas do Estado do Ceará (SIM/TCE-CE)</a>, atualizados automaticamente. O TCE recebe os dados com cerca de um mês de atraso.</p>
-{% else %}
+{% endif %}
+{% if "pncp" in origens %}
 <p class="meta">Dados publicados pela câmara no <a href="https://pncp.gov.br/" rel="noopener">Portal Nacional de Contratações Públicas (PNCP)</a>, atualizados automaticamente.</p>
 {% endif %}
 
 <form method="get" class="filtros" role="search">
   <p><label for="q">Buscar</label><input type="search" id="q" name="q" value="{{ termo }}"
-     placeholder="{% if contratos %}objeto, fornecedor ou CNPJ{% elif despesas %}histórico, credor, CNPJ ou empenho{% else %}objeto, número, processo{% endif %}"></p>
+     placeholder="{% if contratos %}objeto, fornecedor ou CNPJ{% elif despesas %}histórico, credor, CNPJ ou empenho{% elif receitas %}descrição{% else %}objeto, número, processo{% endif %}"></p>
   {% if modalidades|length > 1 %}
   <p><label for="modalidade">Modalidade</label>
     <select id="modalidade" name="modalidade"><option value="">Todas</option>
@@ -36,6 +37,11 @@
   <li><span>Pago</span><strong>R$&nbsp;{{ somas.pago|default:0|floatformat:"2g" }}</strong></li>
 </ul>
 {% endif %}
+{% if receitas %}
+<ul class="totais">
+  <li><span>Recebido no período</span><strong>R$&nbsp;{{ recebido|default:0|floatformat:"2g" }}</strong></li>
+</ul>
+{% endif %}
 {% include "portal/_exportar.html" %}
 
 <div class="tabela-rolagem">
@@ -54,6 +60,19 @@
     </tr>
   {% empty %}<tr><td colspan="5">Nenhuma despesa encontrada.</td></tr>{% endfor %}
   </tbody>
+  {% elif receitas %}
+  <thead><tr><th scope="col">Mês</th><th scope="col">Receita</th><th scope="col">Recebido no mês</th>
+    <th scope="col">Acumulado no ano</th></tr></thead>
+  <tbody>
+  {% for r in pagina %}
+    <tr>
+      <td>{{ r.competencia|date:"m/Y" }}</td>
+      <td>{{ r.descricao }}{% if r.conta %}<br><span class="meta">conta {{ r.conta }}</span>{% endif %}</td>
+      <td class="valor">R$&nbsp;{{ r.valor_mes|floatformat:"2g" }}</td>
+      <td class="valor">R$&nbsp;{{ r.valor_acumulado|floatformat:"2g" }}</td>
+    </tr>
+  {% empty %}<tr><td colspan="4">Nenhuma receita encontrada.</td></tr>{% endfor %}
+  </tbody>
   {% elif contratos %}
   <thead><tr><th scope="col">Contrato</th><th scope="col">Objeto</th><th scope="col">Fornecedor</th>
     <th scope="col">Valor global</th><th scope="col">Vigência</th><th scope="col">Acesso</th></tr></thead>
@@ -65,7 +84,7 @@
       <td>{{ c.fornecedor }}<br><span class="meta">{{ c.fornecedor_documento_publico }}</span></td>
       <td>{% if c.valor_global is not None %}R$&nbsp;{{ c.valor_global|floatformat:"2g" }}{% endif %}</td>
       <td>{{ c.vigencia_inicio|date:"d/m/Y" }}{% if c.vigencia_fim %} a {{ c.vigencia_fim|date:"d/m/Y" }}{% endif %}</td>
-      <td>{% if c.link_origem %}<a href="{{ c.link_origem }}" rel="noopener">Ver no PNCP</a>{% endif %}</td>
+      <td>{% if c.link_origem %}<a href="{{ c.link_origem }}" rel="noopener">Ver no PNCP</a>{% elif c.origem == "tce-ce" %}<span class="meta">TCE-CE</span>{% endif %}</td>
     </tr>
   {% empty %}<tr><td colspan="6">Nenhum contrato encontrado.</td></tr>{% endfor %}
   </tbody>
@@ -82,7 +101,7 @@
       <td>{% if l.valor_estimado is not None %}R$&nbsp;{{ l.valor_estimado|floatformat:"2g" }}{% endif %}
         {% if l.valor_homologado is not None %}<br><span class="meta">homologado: R$&nbsp;{{ l.valor_homologado|floatformat:"2g" }}</span>{% endif %}</td>
       <td>{{ l.publicada_em|date:"d/m/Y" }}</td>
-      <td>{% if l.link_origem %}<a href="{{ l.link_origem }}" rel="noopener">Ver no PNCP</a>{% endif %}
+      <td>{% if l.link_origem %}<a href="{{ l.link_origem }}" rel="noopener">Ver no PNCP</a>{% elif l.origem == "tce-ce" %}<span class="meta">TCE-CE</span>{% endif %}
         {% if l.link_sistema %}<br><a href="{{ l.link_sistema }}" rel="noopener">Sistema de compras</a>{% endif %}</td>
     </tr>
   {% empty %}<tr><td colspan="6">Nenhum registro encontrado.</td></tr>{% endfor %}

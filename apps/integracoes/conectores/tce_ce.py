@@ -1,7 +1,11 @@
 """Conector do SIM/TCE-CE (API de Dados Abertos do Tribunal de Contas do Estado do Ceará).
 
-Traz as despesas da câmara: notas de empenho, liquidações e pagamentos. As diárias são os
-empenhos do elemento 14. Documentação: https://api-dados-abertos.tce.ce.gov.br/sim/
+Traz da câmara:
+- despesas: notas de empenho, liquidações e pagamentos (as diárias são os empenhos do elemento 14);
+- receitas: o repasse mensal do duodécimo (balancete contábil, conta 4.5.1.1.2, transferências recebidas);
+- licitações, dispensas e inexigibilidades: os processos de contratação com dotação da câmara;
+- contratos e aditivos ligados a esses processos, com o contratado.
+Documentação: https://api-dados-abertos.tce.ce.gov.br/sim/
 
 O que a API exige (conferido ao vivo em 11/2026):
 - `codigo_municipio` é o código do TCE (Aratuba = "017"), não o do IBGE; achamos pelo IBGE.
@@ -10,12 +14,14 @@ O que a API exige (conferido ao vivo em 11/2026):
 - A câmara é um órgão dentro do município; achamos pelo CNPJ (`cgc_orgao`) ou pelo tipo 02 (Legislativo).
 - No máximo 1000 registros por página (`$count`), avançando com `$start_index`.
 - Erros vêm em `__errors__`; os dados, em `elements`.
+- Processos, contratos e contratados são do município inteiro, sem órgão, e as datas vão como AAAAMMDD
+  (o formato AAAA-MM-DD da documentação dá erro). A câmara se acha pelas dotações do órgão.
 """
 
 import json
 import time
 import unicodedata
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -31,6 +37,11 @@ TEMPO_LIMITE = 45
 TENTATIVAS_SEM_RESPOSTA = 2  # se o TCE nem responde (servidor fora do Brasil, rede bloqueada), desiste logo
 MESES_DE_ATRASO = 3  # mesmo numa importação diária, relê os últimos meses: o TCE recebe os dados com atraso
 TIPO_LEGISLATIVO = "02"
+CONTA_REPASSE = "4511"  # 4.5.1.1 transferências financeiras recebidas (duodécimo)
+ESPECIES = {"D": "Dispensa", "I": "Inexigibilidade", "R": "Adesão a ata de registro de preços"}
+MODALIDADES = {"1": "Leilão", "2": "Diálogo competitivo", "3": "Concorrência", "6": "Pregão", "7": "Pregão",
+               "12": "Credenciamento"}
+TIPOS_CONTRATO = {"OR": "Contrato", "AA": "Termo aditivo", "PA": "Termo aditivo"}
 
 
 def _digitos(texto):
@@ -128,6 +139,33 @@ def codigo_orgao(municipio, ano, cnpj, configuracao):
     return escolhidos[0]["codigo_orgao"]
 
 
+def _momento(texto):
+    """Data/hora do TCE (sem fuso) como datetime no fuso da aplicação."""
+    from django.utils import timezone
+
+    if not texto:
+        return None
+    return timezone.make_aware(datetime.fromisoformat(texto[:19]))
+
+
+def _texto(valor):
+    return (valor or "").strip()
+
+
+def _dia(d):
+    return d.strftime("%Y%m%d")
+
+
+def modalidade(processo):
+    especie = _texto(processo.get("modalidade_processo_administrativo"))
+    if especie in ESPECIES:
+        return ESPECIES[especie]
+    nome = MODALIDADES.get(_texto(processo.get("modalidade_licitacao")), "Licitação")
+    if nome == "Pregão":
+        nome += " eletrônico" if _texto(processo.get("tipo_forma_contratacao")) == "E" else " presencial"
+    return nome
+
+
 def chave_empenho(item):
     unidade = (item.get("codigo_unidade_orcamentaria") or "").strip()
     return f"{item['exercicio_orcamento'] // 100}-{item['codigo_orgao']}-{unidade}-" \
@@ -163,6 +201,11 @@ class ConectorTCECE(Conector):
                         resultado.avisos.append(f"{caminho}: empenho {item.get('numero_empenho')} não encontrado.")
                     else:
                         tocadas.add(despesa.pk)
+            for item in buscar("balancetes_contabeis", filtro):
+                if _texto(item.get("codigo_conta_contabil")).startswith(CONTA_REPASSE):
+                    resultado.contar(self.gravar_repasse(camara, item)[1])
+
+        self.importar_contratacoes(camara, municipio, set(orgaos.values()), desde, ate, resultado)
 
         from apps.transparencia.models import Despesa
 
@@ -172,6 +215,91 @@ class ConectorTCECE(Conector):
         if len(resultado.avisos) > 20:
             resultado.avisos = resultado.avisos[:20] + [f"… e mais {len(resultado.avisos) - 20} avisos."]
         return resultado
+
+    def importar_contratacoes(self, camara, municipio, orgaos, desde, ate, resultado):
+        """Licitações e contratos são do município inteiro: ficam só os processos com dotação da câmara."""
+        from apps.transparencia.models import Licitacao
+
+        periodo = {"codigo_municipio": municipio, "data_inicio": _dia(desde), "data_fim": _dia(ate)}
+        da_camara = {_texto(d.get("numero_licitacao")) for orgao in orgaos
+                     for d in buscar("dotacoes_utilizadas_contratacoes", {**periodo, "codigo_orgao": orgao})}
+        for processo in buscar("processos_administrativos_contratacoes", periodo):
+            if _texto(processo.get("numero_licitacao")) in da_camara:
+                resultado.contar(self.gravar_processo(camara, processo)[1])
+
+        processos = set(Licitacao.objects.filter(camara=camara, origem="tce-ce").values_list("processo", flat=True))
+        contratados = {(_texto(c.get("numero_contrato")), (c.get("data_contrato") or "")[:10]): c
+                       for c in buscar("contratados", periodo)}
+        for contrato in buscar("contratos", periodo):
+            if _texto(contrato.get("numero_processo_adm")) in processos:
+                chave = (_texto(contrato.get("numero_contrato")), (contrato.get("data_contrato") or "")[:10])
+                resultado.contar(self.gravar_contrato(camara, contrato, contratados.get(chave, {}))[1])
+
+    @staticmethod
+    def gravar_repasse(camara, item):
+        from apps.transparencia.models import Receita
+
+        referencia = item["data_referencia_doc"]
+        conta = _texto(item.get("codigo_conta_contabil"))
+        unidade = _texto(item.get("codigo_unidade_orcamentaria"))
+        competencia = date(referencia // 100, referencia % 100, 1)
+        return Receita.objects.update_or_create(
+            camara=camara, origem="tce-ce",
+            id_origem=f"{referencia}-{item.get('codigo_orgao')}-{unidade}-{conta}-{_texto(item.get('codigo_fonte'))}",
+            defaults={
+                "ano": competencia.year, "competencia": competencia, "conta": conta,
+                "descricao": "Repasse do duodécimo (transferência financeira recebida)",
+                "valor_mes": _decimal(item.get("valor_total_creditos")),
+                "valor_acumulado": _decimal(item.get("valor_saldo_ate_mes")),
+            },
+        )
+
+    @staticmethod
+    def gravar_processo(camara, item):
+        from apps.transparencia.models import Licitacao
+
+        numero = _texto(item.get("numero_licitacao"))
+        autuacao = _momento(item.get("data_realizacao_autuacao_licitacao") or item.get("data_realizacao_licitacao"))
+        abertura = None
+        if item.get("data_realizacao_licitacao") and _texto(item.get("hora_licitacao")):
+            abertura = _momento(item["data_realizacao_licitacao"][:10] + "T" + _texto(item["hora_licitacao"]) + ":00")
+        plataforma = _texto(item.get("descricao_url_plataforma_contratacao"))
+        return Licitacao.objects.update_or_create(
+            camara=camara, origem="tce-ce", id_origem=f"{numero}|{autuacao:%Y-%m-%d}"[:60],
+            defaults={
+                "numero": numero, "ano": autuacao.year, "processo": numero, "modalidade": modalidade(item),
+                "situacao": "Homologada" if item.get("data_homologacao") else "Em andamento",
+                "objeto": _texto(item.get("descricao_objeto_licitacao")),
+                "valor_estimado": _decimal(item.get("valor_orcado_estimado")) if item.get("valor_orcado_estimado") else None,
+                "abertura_propostas": abertura, "publicada_em": autuacao,
+                "link_sistema": plataforma if plataforma.startswith("http") else "",
+            },
+        )
+
+    @staticmethod
+    def gravar_contrato(camara, item, contratado):
+        from apps.transparencia.models import Contrato, Licitacao
+
+        numero = _texto(item.get("numero_contrato"))
+        assinatura = _momento(item.get("data_contrato"))
+        processo = _texto(item.get("numero_processo_adm"))
+        valor = item.get("valor_total_contrato")
+        return Contrato.objects.update_or_create(
+            camara=camara, origem="tce-ce", id_origem=f"{numero}|{assinatura:%Y-%m-%d}"[:60],
+            defaults={
+                "numero": numero, "ano": assinatura.year, "processo": processo,
+                "tipo": TIPOS_CONTRATO.get(_texto(item.get("modalide_contrato")), "Contrato"),
+                "objeto": _texto(item.get("descricao_objeto_contrato")),
+                "fornecedor": _texto(contratado.get("nome_negociante"))[:255],
+                "fornecedor_documento": _digitos(contratado.get("numero_documento_negociante")),
+                "valor_global": _decimal(valor) if valor else None,
+                "assinatura": assinatura.date(), "publicado_em": assinatura,
+                "vigencia_inicio": _data(item.get("data_inicio_vigencia_contrato")),
+                "vigencia_fim": _data(item.get("data_fim_vigencia_contrato")),
+                "licitacao": Licitacao.objects.filter(camara=camara, origem="tce-ce", processo=processo)
+                .order_by("-publicada_em").first(),
+            },
+        )
 
     @staticmethod
     def gravar_empenho(camara, item):

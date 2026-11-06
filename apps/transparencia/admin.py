@@ -4,7 +4,8 @@ from django.utils.text import Truncator
 
 from apps.camaras.admin_mixins import AdminDaCamara, selo_publicacao
 
-from .models import CategoriaTransparencia, Contrato, Despesa, Documento, GrupoTransparencia, Licitacao, MovimentoDespesa
+from .models import (CategoriaTransparencia, Contrato, Despesa, Documento, GrupoTransparencia, Licitacao, MovimentoDespesa,
+                     Receita)
 
 
 class SoPlataforma:
@@ -65,7 +66,7 @@ class SoLeitura:
 @admin.register(Licitacao)
 class LicitacaoAdmin(SoLeitura, AdminDaCamara):
     list_display = ["__str__", "objeto_curto", "situacao", "valor_estimado", "publicada_em", "link"]
-    list_filter = ["ano", "modalidade", "situacao"]
+    list_filter = ["ano", "modalidade", "situacao", "origem"]
     search_fields = ["numero", "processo", "objeto", "id_origem"]
     date_hierarchy = "publicada_em"
     readonly_fields = ["id_origem", "link"]
@@ -83,7 +84,7 @@ class LicitacaoAdmin(SoLeitura, AdminDaCamara):
 @admin.register(Contrato)
 class ContratoAdmin(SoLeitura, AdminDaCamara):
     list_display = ["__str__", "fornecedor", "objeto_curto", "valor_global", "vigencia_fim", "link"]
-    list_filter = ["ano", "tipo"]
+    list_filter = ["ano", "tipo", "origem"]
     search_fields = ["numero", "processo", "objeto", "fornecedor", "fornecedor_documento", "id_origem"]
     date_hierarchy = "assinatura"
     readonly_fields = ["id_origem", "link"]
@@ -136,3 +137,14 @@ class DespesaAdmin(AdminDaCamara):
     @admin.display(description="histórico")
     def historico_curto(self, obj):
         return Truncator(obj.historico).chars(90)
+
+
+@admin.register(Receita)
+class ReceitaAdmin(SoLeitura, AdminDaCamara):
+    """Receitas do SIM/TCE-CE (repasse do duodécimo): só leitura."""
+
+    list_display = ["competencia", "descricao", "valor_mes", "valor_acumulado"]
+    list_filter = ["ano"]
+    date_hierarchy = "competencia"
+    fields = ["camara", "ano", "competencia", "descricao", "conta", "valor_mes", "valor_acumulado", "id_origem"]
+    readonly_fields = ["id_origem"]

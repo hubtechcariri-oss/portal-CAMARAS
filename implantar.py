@@ -71,11 +71,27 @@ def django():
     return call_command
 
 
+def ajustar_charset():
+    """O DirectAdmin cria o banco em latin1; as tabelas novas herdam isso e perdem acentos e emojis."""
+    from django.db import connection
+
+    if connection.vendor != "mysql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT @@character_set_database")
+        (atual,) = cursor.fetchone()
+        if atual != "utf8mb4":
+            nome = connection.ops.quote_name(connection.settings_dict["NAME"])
+            cursor.execute(f"ALTER DATABASE {nome} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+            print(f"Banco convertido de {atual} para utf8mb4.", flush=True)
+
+
 def main(args):
     if "--sem-baixar" not in args:
         baixar()
         instalar_dependencias()
     comando = django()
+    ajustar_charset()
     comando("migrate", interactive=False, verbosity=1)
     comando("collectstatic", interactive=False, verbosity=0)
     print("Banco migrado e arquivos estáticos coletados.", flush=True)

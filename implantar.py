@@ -2,18 +2,20 @@
 
 Rode pelo campo "Executar script Python" do painel da aplicação:
 
-    implantar.py                    baixa a main do GitHub, migra o banco e reinicia a aplicação
+    implantar.py                    baixa a main do GitHub, instala as dependências, migra o banco e reinicia
     implantar.py --sem-baixar       só migra, coleta os arquivos estáticos e reinicia
     implantar.py --demo HOST        também cria a câmara de demonstração respondendo em HOST
     implantar.py --admin            cria o superusuário com DJANGO_SUPERUSER_USERNAME/EMAIL/PASSWORD
                                     (variáveis definidas no painel; a senha nunca aparece na saída)
 
-Antes, no painel, instale as dependências com o arquivo requirements-hospedagem.txt.
+As dependências (requirements-hospedagem.txt) são instaladas aqui mesmo: o botão "Executar Pip Install"
+do painel desiste quando o site ainda não responde, o que acontece justamente na primeira instalação.
 Ver docs/hospedagem-compartilhada.md.
 """
 
 import io
 import os
+import subprocess
 import sys
 import tarfile
 import urllib.request
@@ -44,6 +46,19 @@ def baixar():
     print(f"{total} arquivos atualizados.", flush=True)
 
 
+def instalar_dependencias():
+    print("Instalando dependências …", flush=True)
+    resultado = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "-q",
+         "-r", str(RAIZ / "requirements-hospedagem.txt")],
+        capture_output=True, text=True,
+    )
+    if resultado.returncode:
+        print(resultado.stdout[-3000:], resultado.stderr[-3000:], sep="\n", file=sys.stderr)
+        sys.exit("Falha ao instalar as dependências.")
+    print("Dependências em dia.", flush=True)
+
+
 def django():
     sys.path.insert(0, str(RAIZ))
     os.chdir(RAIZ)
@@ -59,6 +74,7 @@ def django():
 def main(args):
     if "--sem-baixar" not in args:
         baixar()
+        instalar_dependencias()
     comando = django()
     comando("migrate", interactive=False, verbosity=1)
     comando("collectstatic", interactive=False, verbosity=0)

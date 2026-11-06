@@ -14,12 +14,17 @@ Para hospedagens sem SSH, com MySQL/MariaDB e Passenger (ex.: Acquahost). Em ser
    | `DJANGO_DEBUG` | `false` |
    | `DJANGO_SERVIR_MEDIA` | `true` |
    | `DJANGO_ALLOWED_HOSTS` | o domínio, ex.: `cm.caririinovacao.com.br` |
+   | `DJANGO_CSRF_TRUSTED_ORIGINS` | o endereço com https, ex.: `https://cm.caririinovacao.com.br` |
 
    A `SECRET_KEY` é gerada sozinha no primeiro acesso e fica em `portal/.chave_secreta`.
-4. **Código:** crie `portal/implantar.py` (copie do GitHub) e rode-o em "Executar script Python".
-   Ele baixa a main, migra o banco, coleta os estáticos e reinicia. Depois, instale as dependências com
-   `requirements-hospedagem.txt` e rode `implantar.py --sem-baixar` de novo.
-5. **Atualizar:** rode `implantar.py` de novo (ou agende como tarefa cron).
+4. **Código:** envie `implantar.py` (do GitHub) para a pasta `portal` pelo gerenciador de arquivos e rode-o
+   em "Executar script Python". Ele baixa a main, instala as dependências, migra o banco, coleta os
+   estáticos e reinicia. Não use o botão "Executar Pip Install": ele desiste com "Web application is
+   inaccessible" enquanto o site ainda não sobe.
+5. **Câmara e administrador:** `implantar.py --sem-baixar --demo DOMINIO` cria a câmara de demonstração;
+   para o superusuário, defina `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL` e
+   `DJANGO_SUPERUSER_PASSWORD`, rode `implantar.py --sem-baixar --admin` e apague a variável da senha.
+6. **Atualizar:** rode `implantar.py` de novo (ou agende como tarefa cron).
 
 Detalhes do MySQL: as datas ficam gravadas no horário de Brasília (não exige as tabelas de fuso do MySQL) e a
 busca de leis e matérias é por trecho, sem acento (a collation `utf8mb4_unicode_ci` ignora acentos).
